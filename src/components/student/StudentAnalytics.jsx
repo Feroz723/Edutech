@@ -1,15 +1,36 @@
-import React from 'react';
+import React, { useState } from 'react';
 
-const barData = [
+const getCurrentDayIndex = () => {
+    const days = ['M', 'T', 'W', 'T', 'F', 'S'];
+    const today = new Date().getDay();
+    // Map Sunday(0) to Saturday(6) to our day array
+    const dayMap = [6, 0, 1, 2, 3, 4, 5]; // Sun->S, Mon->M, Tue->T, Wed->W, Thu->T, Fri->F, Sat->S
+    return dayMap[today];
+};
+
+const initialBarData = [
     { day: 'M', height: '40%', active: false },
     { day: 'T', height: '60%', active: false },
     { day: 'W', height: '85%', active: false },
-    { day: 'T', height: '95%', active: true },
+    { day: 'T', height: '95%', active: false },
     { day: 'F', height: '75%', active: false },
     { day: 'S', height: '50%', active: false },
-];
+].map((bar, index) => ({
+    ...bar,
+    active: index === getCurrentDayIndex()
+}));
 
 export default function StudentAnalytics() {
+    const [barData, setBarData] = useState(initialBarData);
+
+    const handleBarClick = (index) => {
+        setBarData(prevData => 
+            prevData.map((bar, i) => ({
+                ...bar,
+                active: i === index
+            }))
+        );
+    };
     return (
         <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-200 dark:border-slate-700">
             <div className="flex items-center justify-between mb-6">
@@ -24,11 +45,12 @@ export default function StudentAnalytics() {
                 {barData.map((bar, index) => (
                     <div
                         key={index}
-                        className={`w-full rounded-t-lg transition-colors ${bar.active
+                        className={`w-full rounded-t-lg transition-colors cursor-pointer ${bar.active
                                 ? 'bg-primary'
                                 : 'bg-slate-100 dark:bg-slate-700 hover:bg-primary/20'
                             }`}
                         style={{ height: bar.height }}
+                        onClick={() => handleBarClick(index)}
                     />
                 ))}
             </div>
