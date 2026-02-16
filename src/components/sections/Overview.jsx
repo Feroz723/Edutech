@@ -1,22 +1,28 @@
-import React from 'react';
+import React, { useState } from 'react';
+import VideoUploadModal from '../VideoUploadModal';
+import StudentListModal from '../StudentListModal';
+import CourseBoxModal from '../CourseBoxModal';
 
 export default function Overview() {
+  const [showVideoModal, setShowVideoModal] = useState(false);
+  const [showStudentModal, setShowStudentModal] = useState(false);
+  const [showCourseModal, setShowCourseModal] = useState(false);
   const stats = [
     {
       title: 'Total Students',
       value: '12,482',
       trend: '+12%',
       icon: 'groups',
-      bgColor: 'bg-blue-50 dark:bg-blue-900/20',
+      bgColor: 'bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30',
       trendColor: 'text-green-500',
-      iconColor: 'text-primary',
+      iconColor: 'text-blue-600',
     },
     {
       title: 'Courses Active',
       value: '84',
       trend: '+5%',
       icon: 'play_circle',
-      bgColor: 'bg-purple-50 dark:bg-purple-900/20',
+      bgColor: 'bg-gradient-to-br from-purple-50 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30',
       trendColor: 'text-green-500',
       iconColor: 'text-purple-600',
     },
@@ -25,7 +31,7 @@ export default function Overview() {
       value: '$158,240',
       trend: '-2%',
       icon: 'payments',
-      bgColor: 'bg-emerald-50 dark:bg-emerald-900/20',
+      bgColor: 'bg-gradient-to-br from-emerald-50 to-teal-100 dark:from-emerald-900/30 dark:to-teal-900/30',
       trendColor: 'text-red-500',
       iconColor: 'text-emerald-600',
     },
@@ -49,7 +55,10 @@ export default function Overview() {
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Dashboard Overview</h1>
           <p className="text-slate-500">Manage your students and course content efficiently.</p>
         </div>
-        <button className="bg-primary hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg flex items-center gap-2 font-semibold transition-colors shadow-lg shadow-blue-500/20">
+        <button 
+          onClick={() => setShowVideoModal(true)}
+          className="bg-primary hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg flex items-center gap-2 font-semibold transition-colors shadow-lg shadow-blue-500/20"
+        >
           <span className="material-symbols-outlined">video_call</span>
           Upload New Video
         </button>
@@ -58,7 +67,20 @@ export default function Overview() {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {stats.map((stat, index) => (
-          <div key={index} className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+          <div 
+            key={index} 
+            className={`bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-lg transition-all cursor-pointer ${
+              stat.title === 'Total Students' ? 'hover:scale-105' : 
+              stat.title === 'Courses Active' ? 'hover:scale-105' : ''
+            }`}
+            onClick={() => {
+              if (stat.title === 'Total Students') {
+                setShowStudentModal(true);
+              } else if (stat.title === 'Courses Active') {
+                setShowCourseModal(true);
+              }
+            }}
+          >
             <div className="flex items-center justify-between mb-4">
               <div className={`w-12 h-12 ${stat.bgColor} rounded-xl flex items-center justify-center`}>
                 <span className={`material-symbols-outlined ${stat.iconColor}`}>{stat.icon}</span>
@@ -138,6 +160,20 @@ export default function Overview() {
           </table>
         </div>
       </div>
+
+      {/* Modals */}
+      <VideoUploadModal 
+        isOpen={showVideoModal} 
+        onClose={() => setShowVideoModal(false)} 
+      />
+      <StudentListModal 
+        isOpen={showStudentModal} 
+        onClose={() => setShowStudentModal(false)} 
+      />
+      <CourseBoxModal 
+        isOpen={showCourseModal} 
+        onClose={() => setShowCourseModal(false)} 
+      />
     </div>
   );
 }
