@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import LoginPage from './components/LoginPage';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import Overview from './components/sections/Overview';
 import Courses from './components/sections/Courses';
 import Students from './components/sections/Students';
 import Analytics from './components/sections/Analytics';
+import StudentDashboard from './components/StudentDashboard';
 import './App.css';
 
-export default function App() {
+function AdminDashboard() {
   const [darkMode, setDarkMode] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
 
@@ -49,5 +52,29 @@ export default function App() {
         </main>
       </div>
     </div>
+  );
+}
+
+function AppRouter() {
+  const { user } = useAuth();
+
+  // Not logged in → show login page
+  if (!user) {
+    return <LoginPage />;
+  }
+
+  // Route to the correct dashboard based on role
+  if (user.role === 'admin') {
+    return <AdminDashboard />;
+  }
+
+  return <StudentDashboard />;
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppRouter />
+    </AuthProvider>
   );
 }

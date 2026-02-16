@@ -1,6 +1,9 @@
 import React from 'react';
+import { useAuth } from '../context/AuthContext';
 
 export default function Sidebar({ activeTab, setActiveTab, toggleDarkMode }) {
+  const { logout } = useAuth();
+
   const tabs = [
     { id: 'overview', label: 'Overview', icon: 'dashboard' },
     { id: 'courses', label: 'Courses', icon: 'menu_book' },
@@ -24,11 +27,10 @@ export default function Sidebar({ activeTab, setActiveTab, toggleDarkMode }) {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg font-medium transition-all ${
-              activeTab === tab.id
+            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg font-medium transition-all ${activeTab === tab.id
                 ? 'bg-primary text-white'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-            }`}
+              }`}
           >
             <span className="material-symbols-outlined">{tab.icon}</span>
             {tab.label}
@@ -40,14 +42,21 @@ export default function Sidebar({ activeTab, setActiveTab, toggleDarkMode }) {
         </button>
       </nav>
 
-      {/* Dark Mode Toggle */}
-      <div className="p-4 border-t border-slate-200 dark:border-slate-800">
+      {/* Bottom Actions */}
+      <div className="p-4 border-t border-slate-200 dark:border-slate-800 space-y-1">
         <button
           onClick={toggleDarkMode}
           className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
         >
           <span className="material-symbols-outlined">dark_mode</span>
           Dark Mode
+        </button>
+        <button
+          onClick={logout}
+          className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
+        >
+          <span className="material-symbols-outlined">logout</span>
+          Logout
         </button>
       </div>
     </aside>
