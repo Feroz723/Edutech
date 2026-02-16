@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import CourseTopics from './CourseTopics';
 
 const coursesList = [
     {
@@ -6,7 +7,7 @@ const coursesList = [
         description: 'Master hooks, context, and modern component patterns.',
         category: 'Coding',
         progress: 68,
-        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAoVudFVrkHMAiqn3m4nWuEszfBNhIfw2VW2IMmGK_vdNlTQXvGOffImtcuQ8QJPrOlBxQTfuHftvQqudlLfe32odRSQF6nYF65XOwSgKKis0sxE0ddu2nX5P-SMC8vTzgWvq2IwZHFm1Q1EYN-tuWjwg3Y0rgTX7-H9R7XlLfOVuvNQ15DCc1V9bsFXpLwlmNLRTHmGVyJnOWeko-7TmBBOwxtCZ5L0Y8OVl5uCLLprFaT0yDyUCbvCB1XimT9jKLZR5r3_4hbdnJt',
+        image: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=400&h=225&fit=crop',
         primaryCTA: true,
     },
     {
@@ -14,12 +15,66 @@ const coursesList = [
         description: 'Optimize your code and master technical interviews.',
         category: 'Data',
         progress: 42,
-        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAJK16CwTtZq0BYnmKNPjRY4Ap6Jpd0-gY8ZD8CwKG3ErJKBieJueh0ASAuF7mwJ-nMz4zbMpzrJbCywcRZSKQVXKrNHxLj0wV5JIRxKuP-VUlakXGSkvEyq8QZsgDZGQ1VbLedf8KVn4HVIlH4JebnNFZ41iIX2XIP35rAdmMzFAXVZW4xc1VxQuYNhNgIzmQ8Z1G4hPsI7w0OR_nXeQOsE7-wQnoUyl13FUrOVwDSAnNmCOvWa-13Wia4KLlCVHErPJwS9maMXhiH',
+        image: 'https://images.unsplash.com/photo-1509228627152-72ae9ae6848d?w=400&h=225&fit=crop',
+        primaryCTA: false,
+    },
+    {
+        name: 'JavaScript Fundamentals',
+        description: 'Learn the core concepts of JavaScript programming.',
+        category: 'Coding',
+        progress: 85,
+        image: 'https://images.unsplash.com/photo-1579403124614-197f69d8187b?w=400&h=225&fit=crop',
+        primaryCTA: false,
+    },
+    {
+        name: 'Python for Data Science',
+        description: 'Master Python for data analysis and machine learning.',
+        category: 'Data',
+        progress: 30,
+        image: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?w=400&h=225&fit=crop',
+        primaryCTA: false,
+    },
+    {
+        name: 'Web Design Principles',
+        description: 'Learn modern web design and user experience principles.',
+        category: 'Design',
+        progress: 92,
+        image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=225&fit=crop',
+        primaryCTA: false,
+    },
+    {
+        name: 'Machine Learning Basics',
+        description: 'Introduction to machine learning concepts and applications.',
+        category: 'Data',
+        progress: 15,
+        image: 'https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?w=400&h=225&fit=crop',
+        primaryCTA: false,
+    },
+    {
+        name: 'Database Management',
+        description: 'Learn database design and SQL fundamentals.',
+        category: 'Data',
+        progress: 55,
+        image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=225&fit=crop',
         primaryCTA: false,
     },
 ];
 
 export default function StudentCourses() {
+    const [selectedCourse, setSelectedCourse] = useState(null);
+
+    const handleContinueLearning = (courseName) => {
+        setSelectedCourse(courseName);
+    };
+
+    if (selectedCourse) {
+        return (
+            <CourseTopics 
+                courseName={selectedCourse} 
+                onBack={() => setSelectedCourse(null)} 
+            />
+        );
+    }
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {coursesList.map((course, index) => (
@@ -58,6 +113,7 @@ export default function StudentCourses() {
 
                         {/* CTA Button */}
                         <button
+                            onClick={() => handleContinueLearning(course.name)}
                             className={`w-full mt-4 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all ${course.primaryCTA
                                     ? 'bg-primary text-white hover:bg-blue-600'
                                     : 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary hover:bg-primary hover:text-white'
