@@ -20,7 +20,7 @@ const initialBarData = [
     active: index === getCurrentDayIndex()
 }));
 
-export default function StudentAnalytics() {
+export default function StudentAnalytics({ onBack }) {
     const [barData, setBarData] = useState(initialBarData);
 
     const handleBarClick = (index) => {
@@ -31,84 +31,237 @@ export default function StudentAnalytics() {
             }))
         );
     };
+
     return (
-        <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-200 dark:border-slate-700">
-            <div className="flex items-center justify-between mb-6">
-                <h3 className="font-bold">Performance Analytics</h3>
-                <button className="text-slate-400 hover:text-primary transition-colors">
-                    <span className="material-symbols-outlined">more_horiz</span>
+        <div className="max-w-7xl mx-auto">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-8">
+                <div>
+                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Student Activity Analytics</h1>
+                    <p className="text-slate-600 dark:text-slate-400">Track your learning progress and performance</p>
+                </div>
+                <button
+                    onClick={onBack}
+                    className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                >
+                    <span className="material-symbols-outlined">arrow_back</span>
+                    <span className="font-medium">Back to Dashboard</span>
                 </button>
             </div>
 
-            {/* Bar Chart */}
-            <div className="flex items-end justify-between h-24 px-2 gap-2 mb-4">
-                {barData.map((bar, index) => (
-                    <div
-                        key={index}
-                        className={`w-full rounded-t-lg transition-colors cursor-pointer ${bar.active
-                                ? 'bg-primary'
-                                : 'bg-slate-100 dark:bg-slate-700 hover:bg-primary/20'
-                            }`}
-                        style={{ height: bar.height }}
-                        onClick={() => handleBarClick(index)}
-                    />
-                ))}
-            </div>
-            <div className="flex justify-between text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-8">
-                {barData.map((bar, index) => (
-                    <span key={index} className={bar.active ? 'text-primary' : ''}>
-                        {bar.day}
-                    </span>
-                ))}
+            {/* Overview Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-xl flex items-center justify-center">
+                            <span className="material-symbols-outlined text-blue-600 dark:text-blue-400">schedule</span>
+                        </div>
+                        <span className="text-green-500 text-sm font-medium">+12%</span>
+                    </div>
+                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">24.5h</h3>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">Weekly Study Time</p>
+                </div>
+
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-xl flex items-center justify-center">
+                            <span className="material-symbols-outlined text-green-600 dark:text-green-400">check_circle</span>
+                        </div>
+                        <span className="text-green-500 text-sm font-medium">+8%</span>
+                    </div>
+                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">87%</h3>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">Completion Rate</p>
+                </div>
+
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/20 rounded-xl flex items-center justify-center">
+                            <span className="material-symbols-outlined text-orange-600 dark:text-orange-400">local_fire_department</span>
+                        </div>
+                        <span className="text-orange-500 text-sm font-medium">15 days</span>
+                    </div>
+                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">12</h3>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">Current Streak</p>
+                </div>
+
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/20 rounded-xl flex items-center justify-center">
+                            <span className="material-symbols-outlined text-purple-600 dark:text-purple-400">grade</span>
+                        </div>
+                        <span className="text-green-500 text-sm font-medium">+25%</span>
+                    </div>
+                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">A+</h3>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">Performance Grade</p>
+                </div>
             </div>
 
-            {/* Skills Mastery Radar Chart */}
-            <div className="mt-8 pt-8 border-t border-slate-100 dark:border-slate-700">
-                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">Skills Mastery</h4>
-                <div className="relative w-48 h-48 mx-auto flex items-center justify-center">
-                    {/* Radial grid background */}
-                    <div
-                        className="absolute inset-0 rounded-full"
-                        style={{
-                            background: 'radial-gradient(circle, transparent 20%, rgba(0,102,255,0.05) 20%, rgba(0,102,255,0.05) 21%, transparent 21%, transparent 40%, rgba(0,102,255,0.05) 40%, rgba(0,102,255,0.05) 41%, transparent 41%, transparent 60%, rgba(0,102,255,0.05) 60%, rgba(0,102,255,0.05) 61%, transparent 61%, transparent 80%, rgba(0,102,255,0.05) 80%, rgba(0,102,255,0.05) 81%, transparent 81%)',
-                        }}
-                    />
-                    {/* SVG Radar Polygon */}
-                    <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 100 100">
-                        <polygon
-                            fill="rgba(0,102,255,0.2)"
-                            points="50,15 80,40 70,75 30,75 20,40"
-                            stroke="#0066FF"
-                            strokeWidth="1.5"
+            {/* Daily Activity Chart */}
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 mb-8">
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6">Daily Activity This Week</h3>
+                
+                {/* Bar Chart */}
+                <div className="flex items-end justify-between h-32 px-2 gap-2 mb-4">
+                    {barData.map((bar, index) => (
+                        <div
+                            key={index}
+                            className={`w-full rounded-t-lg transition-colors cursor-pointer ${bar.active
+                                    ? 'bg-primary'
+                                    : 'bg-slate-100 dark:bg-slate-700 hover:bg-primary/20'
+                                }`}
+                            style={{ height: bar.height }}
+                            onClick={() => handleBarClick(index)}
                         />
-                        <circle cx="50" cy="15" fill="#0066FF" r="2" />
-                        <circle cx="80" cy="40" fill="#0066FF" r="2" />
-                        <circle cx="70" cy="75" fill="#0066FF" r="2" />
-                        <circle cx="30" cy="75" fill="#0066FF" r="2" />
-                        <circle cx="20" cy="40" fill="#0066FF" r="2" />
-                    </svg>
-                    {/* Skill Labels */}
-                    <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-[9px] font-bold">Logic</span>
-                    <span className="absolute top-1/4 -right-6 text-[9px] font-bold">Design</span>
-                    <span className="absolute -bottom-4 right-1/4 text-[9px] font-bold">Coding</span>
-                    <span className="absolute -bottom-4 left-1/4 text-[9px] font-bold">Data</span>
-                    <span className="absolute top-1/4 -left-6 text-[9px] font-bold">Speed</span>
+                    ))}
+                </div>
+                
+                <div className="flex justify-between text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-4">
+                    {barData.map((bar, index) => (
+                        <span key={index} className={bar.active ? 'text-primary' : ''}>
+                            {bar.day}
+                        </span>
+                    ))}
+                </div>
+                
+                <div className="text-center text-sm text-slate-600 dark:text-slate-400">
+                    Average: 4.1 hours per day
+                </div>
+            </div>
+
+            {/* Course Progress */}
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 mb-8">
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6">Course Progress</h3>
+                
+                <div className="space-y-4">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-xl flex items-center justify-center">
+                            <span className="material-symbols-outlined text-blue-600 dark:text-blue-400">code</span>
+                        </div>
+                        <div className="flex-1">
+                            <div className="flex items-center justify-between mb-2">
+                                <h4 className="font-medium text-slate-900 dark:text-white">Advanced React</h4>
+                                <span className="text-sm text-slate-600 dark:text-slate-400">68%</span>
+                            </div>
+                            <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2">
+                                <div className="bg-blue-500 h-2 rounded-full" style={{ width: '68%' }}></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-xl flex items-center justify-center">
+                            <span className="material-symbols-outlined text-green-600 dark:text-green-400">data_object</span>
+                        </div>
+                        <div className="flex-1">
+                            <div className="flex items-center justify-between mb-2">
+                                <h4 className="font-medium text-slate-900 dark:text-white">Data Structures</h4>
+                                <span className="text-sm text-slate-600 dark:text-slate-400">42%</span>
+                            </div>
+                            <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2">
+                                <div className="bg-green-500 h-2 rounded-full" style={{ width: '42%' }}></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/20 rounded-xl flex items-center justify-center">
+                            <span className="material-symbols-outlined text-purple-600 dark:text-purple-400">javascript</span>
+                        </div>
+                        <div className="flex-1">
+                            <div className="flex items-center justify-between mb-2">
+                                <h4 className="font-medium text-slate-900 dark:text-white">JavaScript Fundamentals</h4>
+                                <span className="text-sm text-slate-600 dark:text-slate-400">85%</span>
+                            </div>
+                            <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2">
+                                <div className="bg-purple-500 h-2 rounded-full" style={{ width: '85%' }}></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Learning Patterns */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6">Learning Patterns</h3>
+                    
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                            <span className="text-sm text-slate-600 dark:text-slate-400">Most Active Time</span>
+                            <span className="text-sm font-medium text-slate-900 dark:text-white">2:00 PM - 6:00 PM</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <span className="text-sm text-slate-600 dark:text-slate-400">Best Performance Day</span>
+                            <span className="text-sm font-medium text-slate-900 dark:text-white">Thursday</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <span className="text-sm text-slate-600 dark:text-slate-400">Preferred Content Type</span>
+                            <span className="text-sm font-medium text-slate-900 dark:text-white">Video Lessons</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <span className="text-sm text-slate-600 dark:text-slate-400">Average Session Length</span>
+                            <span className="text-sm font-medium text-slate-900 dark:text-white">45 minutes</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <span className="text-sm text-slate-600 dark:text-slate-400">Quiz Score Average</span>
+                            <span className="text-sm font-medium text-slate-900 dark:text-white">92%</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Recent Achievements */}
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6">Recent Achievements</h3>
+                    
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/20 rounded-lg flex items-center justify-center">
+                                <span className="material-symbols-outlined text-orange-600 dark:text-orange-400">military_tech</span>
+                            </div>
+                            <div>
+                                <h4 className="font-medium text-slate-900 dark:text-white">Week Warrior</h4>
+                                <p className="text-sm text-slate-600 dark:text-slate-400">7-day streak completed</p>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
+                                <span className="material-symbols-outlined text-blue-600 dark:text-blue-400">speed</span>
+                            </div>
+                            <div>
+                                <h4 className="font-medium text-slate-900 dark:text-white">Quick Learner</h4>
+                                <p className="text-sm text-slate-600 dark:text-slate-400">5 lessons this week</p>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center">
+                                <span className="material-symbols-outlined text-green-600 dark:text-green-400">trending_up</span>
+                            </div>
+                            <div>
+                                <h4 className="font-medium text-slate-900 dark:text-white">On Fire</h4>
+                                <p className="text-sm text-slate-600 dark:text-slate-400">Top 10% this month</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             {/* Stats Footer */}
-            <div className="mt-8 pt-8 border-t border-slate-100 dark:border-slate-700 grid grid-cols-2 gap-4">
-                <div>
-                    <p className="text-xs text-slate-400 font-medium mb-1">Weekly Avg.</p>
-                    <p className="text-xl font-bold">
-                        4.8h <span className="text-green-500 text-xs">+12%</span>
-                    </p>
-                </div>
-                <div>
-                    <p className="text-xs text-slate-400 font-medium mb-1">Rank</p>
-                    <p className="text-xl font-bold">
-                        #14 <span className="text-slate-400 text-xs">Global</span>
-                    </p>
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 font-medium mb-2">Weekly Average</p>
+                        <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                            4.8h <span className="text-green-500 text-sm">+12%</span>
+                        </p>
+                    </div>
+                    <div>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 font-medium mb-2">Global Rank</p>
+                        <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                            #14 <span className="text-slate-400 text-sm">Global</span>
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>

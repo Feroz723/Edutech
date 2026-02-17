@@ -46,22 +46,7 @@ export default function StudentNavbar({ toggleDarkMode, setCurrentView }) {
 
     return (
         <nav className="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
-            <div className="max-w-[1440px] mx-auto px-6 h-16 flex items-center justify-between">
-                {/* Left: Logo + Nav Links */}
-                <div className="flex items-center gap-8">
-                    <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                            <span className="material-symbols-outlined text-white text-xl">school</span>
-                        </div>
-                        <span className="font-bold text-xl tracking-tight">EduFlow</span>
-                    </div>
-                    <div className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600 dark:text-slate-400">
-                        <a className="hover:text-primary transition-colors cursor-pointer" href="#">Courses</a>
-                        <a className="hover:text-primary transition-colors cursor-pointer" href="#">Mentors</a>
-                        <a className="hover:text-primary transition-colors cursor-pointer" href="#">Community</a>
-                    </div>
-                </div>
-
+            <div className="max-w-[1440px] mx-auto px-6 h-16 flex items-center justify-end">
                 {/* Right: Actions */}
                 <div className="flex items-center gap-4">
                     {/* Dark Mode Toggle */}
