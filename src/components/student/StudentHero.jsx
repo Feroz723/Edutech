@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
 
-export default function StudentHero({ onShowEnrolledCourses, onShowLiveClasses }) {
+export default function StudentHero({ onViewAnalytics }) {
     const { user } = useAuth();
     const firstName = user?.name?.split(' ')[0] || 'Student';
 
@@ -33,10 +33,7 @@ export default function StudentHero({ onShowEnrolledCourses, onShowLiveClasses }
 
                     {/* Quick Stats */}
                     <div className="flex flex-wrap justify-center md:justify-start gap-4">
-                        <div 
-                            onClick={onShowEnrolledCourses}
-                            className="bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-2xl min-w-[160px] flex items-center gap-4 cursor-pointer hover:bg-white/20 transition-all transform hover:scale-105"
-                        >
+                        <div className="bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-2xl min-w-[160px] flex items-center gap-4">
                             <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-white">
                                 <span className="material-symbols-outlined">menu_book</span>
                             </div>
@@ -46,10 +43,7 @@ export default function StudentHero({ onShowEnrolledCourses, onShowLiveClasses }
                             </div>
                         </div>
 
-                        <div 
-                            onClick={onShowLiveClasses}
-                            className="bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-2xl min-w-[160px] flex items-center gap-4 cursor-pointer hover:bg-white/20 transition-all transform hover:scale-105"
-                        >
+                        <div className="bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-2xl min-w-[160px] flex items-center gap-4">
                             <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-white">
                                 <span className="material-symbols-outlined">live_tv</span>
                             </div>
@@ -63,7 +57,10 @@ export default function StudentHero({ onShowEnrolledCourses, onShowLiveClasses }
 
                 {/* CTA Button */}
                 <div className="hidden lg:block">
-                    <button className="bg-white text-primary px-6 py-3 rounded-xl font-bold hover:shadow-lg transition-all transform hover:-translate-y-1">
+                    <button 
+                        onClick={onViewAnalytics}
+                        className="bg-white text-primary px-6 py-3 rounded-xl font-bold hover:shadow-lg transition-all transform hover:-translate-y-1"
+                    >
                         View Analytics
                     </button>
                 </div>
