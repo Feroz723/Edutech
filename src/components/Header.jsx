@@ -30,7 +30,7 @@ export default function Header({ toggleDarkMode, darkMode }) {
 
   return (
     <>
-      <header className="h-16 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-between px-8 z-20">
+      <header className="h-16 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-between px-4 z-20">
         {/* Search Bar */}
         <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-full px-4 py-1.5 w-96">
           <span className="material-symbols-outlined text-slate-400 text-lg mr-2">search</span>

@@ -218,9 +218,20 @@ const courseTopicsData = {
 export default function CourseTopics({ courseName, onBack }) {
     const topics = courseTopicsData[courseName] || [];
     const [selectedTopic, setSelectedTopic] = useState(null);
+    const [activeTab, setActiveTab] = useState('videos'); // videos, resources
 
     const handleTopicClick = (topic) => {
         setSelectedTopic(topic);
+    };
+
+    const handleResourceClick = () => {
+        // Navigate to enrolled courses view
+        onBack();
+        // Trigger enrolled courses view after a short delay
+        setTimeout(() => {
+            const event = new CustomEvent('showEnrolledCourses');
+            window.dispatchEvent(event);
+        }, 100);
     };
 
     const handleVideoPlay = () => {
@@ -331,81 +342,245 @@ export default function CourseTopics({ courseName, onBack }) {
                 <h2 className="text-2xl font-bold">{courseName}</h2>
             </div>
 
-            {/* Topics Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {topics.map((topic, index) => (
-                    <div
-                        key={topic.id}
-                        onClick={() => handleTopicClick(topic)}
-                        className="group cursor-pointer bg-slate-50 dark:bg-slate-900 rounded-2xl overflow-hidden hover:shadow-lg transition-all"
-                    >
-                        {/* Video Thumbnail */}
-                        <div className="relative aspect-video">
-                            <img
-                                src={topic.thumbnail}
-                                alt={topic.title}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            />
-                            
-                            {/* Play Button Overlay */}
-                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
-                                    <span className="material-symbols-outlined text-primary">play_arrow</span>
-                                </div>
-                            </div>
+            {/* Tabs */}
+            <div className="flex items-center gap-6 border-b border-slate-200 dark:border-slate-800 mb-8 overflow-x-auto whitespace-nowrap pb-1">
+                <button
+                    onClick={() => setActiveTab('videos')}
+                    className={`pb-4 text-sm font-semibold flex items-center gap-2 transition-all border-b-2 ${
+                        activeTab === 'videos'
+                            ? 'border-primary text-primary'
+                            : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                    }`}
+                >
+                    <span className="material-symbols-outlined text-[18px]">play_circle</span>
+                    Videos
+                </button>
+                <button
+                    onClick={() => setActiveTab('resources')}
+                    className={`pb-4 text-sm font-semibold flex items-center gap-2 transition-all border-b-2 ${
+                        activeTab === 'resources'
+                            ? 'border-primary text-primary'
+                            : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                    }`}
+                >
+                    <span className="material-symbols-outlined text-[18px]">folder_open</span>
+                    Resources
+                </button>
+            </div>
 
-                            {/* Progress Badge */}
-                            <div className="absolute top-3 right-3">
-                                {topic.completed ? (
-                                    <div className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
-                                        <span className="material-symbols-outlined text-xs">check</span>
-                                        Completed
+            {/* Tab Content */}
+            {activeTab === 'videos' && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {topics.map((topic, index) => (
+                        <div
+                            key={topic.id}
+                            onClick={() => handleTopicClick(topic)}
+                            className="group cursor-pointer bg-slate-50 dark:bg-slate-900 rounded-2xl overflow-hidden hover:shadow-lg transition-all"
+                        >
+                            {/* Video Thumbnail */}
+                            <div className="relative aspect-video">
+                                <img
+                                    src={topic.thumbnail}
+                                    alt={topic.title}
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                />
+                                
+                                {/* Play Button Overlay */}
+                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
+                                        <span className="material-symbols-outlined text-primary">play_arrow</span>
                                     </div>
-                                ) : topic.viewedPercentage > 0 ? (
-                                    <div className="bg-primary text-white px-2 py-1 rounded-full text-xs font-semibold">
-                                        {topic.viewedPercentage}%
-                                    </div>
-                                ) : (
-                                    <div className="bg-slate-800/70 text-white px-2 py-1 rounded-full text-xs font-semibold">
-                                        New
+                                </div>
+
+                                {/* Progress Badge */}
+                                <div className="absolute top-3 right-3">
+                                    {topic.completed ? (
+                                        <div className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
+                                            <span className="material-symbols-outlined text-xs">check</span>
+                                            Completed
+                                        </div>
+                                    ) : topic.viewedPercentage > 0 ? (
+                                        <div className="bg-primary text-white px-2 py-1 rounded-full text-xs font-semibold">
+                                            {topic.viewedPercentage}%
+                                        </div>
+                                    ) : (
+                                        <div className="bg-slate-800/70 text-white px-2 py-1 rounded-full text-xs font-semibold">
+                                            New
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Viewed Progress Bar */}
+                                {topic.viewedPercentage > 0 && (
+                                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/30">
+                                        <div
+                                            className="bg-primary h-full transition-all duration-300"
+                                            style={{ width: `${topic.viewedPercentage}%` }}
+                                        />
                                     </div>
                                 )}
                             </div>
 
-                            {/* Viewed Progress Bar */}
-                            {topic.viewedPercentage > 0 && (
-                                <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/30">
-                                    <div
-                                        className="bg-primary h-full transition-all duration-300"
-                                        style={{ width: `${topic.viewedPercentage}%` }}
-                                    />
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Topic Info */}
-                        <div className="p-4">
-                            <h3 className="font-semibold mb-2 group-hover:text-primary transition-colors">
-                                {index + 1}. {topic.title}
-                            </h3>
-                            <p className="text-sm text-slate-500 dark:text-slate-400 mb-3 line-clamp-2">
-                                {topic.description}
-                            </p>
-                            <div className="flex items-center justify-between">
-                                <span className="text-xs text-slate-400 flex items-center gap-1">
-                                    <span className="material-symbols-outlined text-base">schedule</span>
-                                    {topic.duration}
-                                </span>
-                                {topic.viewedPercentage > 0 && !topic.completed && (
-                                    <span className="text-xs text-primary font-medium">
-                                        Continue watching
+                            {/* Topic Info */}
+                            <div className="p-4">
+                                <h3 className="font-semibold mb-2 group-hover:text-primary transition-colors">
+                                    {index + 1}. {topic.title}
+                                </h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 mb-3 line-clamp-2">
+                                    {topic.description}
+                                </p>
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs text-slate-400 flex items-center gap-1">
+                                        <span className="material-symbols-outlined text-base">schedule</span>
+                                        {topic.duration}
                                     </span>
-                                )}
+                                    {topic.viewedPercentage > 0 && !topic.completed && (
+                                        <span className="text-xs text-primary font-medium">
+                                            Continue watching
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {activeTab === 'resources' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* PDF Resources */}
+                    <div 
+                        onClick={handleResourceClick}
+                        className="bg-slate-50 dark:bg-slate-900 rounded-2xl p-6 hover:shadow-lg transition-all cursor-pointer"
+                    >
+                        <div className="flex items-start gap-4">
+                            <div className="w-12 h-12 bg-red-100 dark:bg-red-900/20 rounded-xl flex items-center justify-center">
+                                <span className="material-symbols-outlined text-red-600 dark:text-red-400">picture_as_pdf</span>
+                            </div>
+                            <div className="flex-1">
+                                <h3 className="font-semibold mb-2">Course Notes</h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">
+                                    Complete lecture notes and slides for this course
+                                </p>
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs text-slate-400">PDF • 2.4 MB</span>
+                                    <span className="text-xs text-primary font-medium">View Courses</span>
+                                </div>
                             </div>
                         </div>
                     </div>
-                ))}
-            </div>
+
+                    {/* Assignment PDF */}
+                    <div 
+                        onClick={handleResourceClick}
+                        className="bg-slate-50 dark:bg-slate-900 rounded-2xl p-6 hover:shadow-lg transition-all cursor-pointer"
+                    >
+                        <div className="flex items-start gap-4">
+                            <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-xl flex items-center justify-center">
+                                <span className="material-symbols-outlined text-blue-600 dark:text-blue-400">assignment</span>
+                            </div>
+                            <div className="flex-1">
+                                <h3 className="font-semibold mb-2">Assignments</h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">
+                                    Practice assignments and coding challenges
+                                </p>
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs text-slate-400">PDF • 1.8 MB</span>
+                                    <span className="text-xs text-primary font-medium">View Courses</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Code Examples */}
+                    <div 
+                        onClick={handleResourceClick}
+                        className="bg-slate-50 dark:bg-slate-900 rounded-2xl p-6 hover:shadow-lg transition-all cursor-pointer"
+                    >
+                        <div className="flex items-start gap-4">
+                            <div className="w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-xl flex items-center justify-center">
+                                <span className="material-symbols-outlined text-green-600 dark:text-green-400">code</span>
+                            </div>
+                            <div className="flex-1">
+                                <h3 className="font-semibold mb-2">Code Examples</h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">
+                                    Source code examples and project files
+                                </p>
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs text-slate-400">ZIP • 856 KB</span>
+                                    <span className="text-xs text-primary font-medium">View Courses</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Reference Materials */}
+                    <div 
+                        onClick={handleResourceClick}
+                        className="bg-slate-50 dark:bg-slate-900 rounded-2xl p-6 hover:shadow-lg transition-all cursor-pointer"
+                    >
+                        <div className="flex items-start gap-4">
+                            <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/20 rounded-xl flex items-center justify-center">
+                                <span className="material-symbols-outlined text-purple-600 dark:text-purple-400">menu_book</span>
+                            </div>
+                            <div className="flex-1">
+                                <h3 className="font-semibold mb-2">Reference Materials</h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">
+                                    Additional reading materials and documentation
+                                </p>
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs text-slate-400">PDF • 3.2 MB</span>
+                                    <span className="text-xs text-primary font-medium">View Courses</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Cheat Sheet */}
+                    <div 
+                        onClick={handleResourceClick}
+                        className="bg-slate-50 dark:bg-slate-900 rounded-2xl p-6 hover:shadow-lg transition-all cursor-pointer"
+                    >
+                        <div className="flex items-start gap-4">
+                            <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/20 rounded-xl flex items-center justify-center">
+                                <span className="material-symbols-outlined text-orange-600 dark:text-orange-400">description</span>
+                            </div>
+                            <div className="flex-1">
+                                <h3 className="font-semibold mb-2">Quick Reference</h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">
+                                    Quick reference guide and cheat sheet
+                                </p>
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs text-slate-400">PDF • 456 KB</span>
+                                    <span className="text-xs text-primary font-medium">View Courses</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Project Files */}
+                    <div 
+                        onClick={handleResourceClick}
+                        className="bg-slate-50 dark:bg-slate-900 rounded-2xl p-6 hover:shadow-lg transition-all cursor-pointer"
+                    >
+                        <div className="flex items-start gap-4">
+                            <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/20 rounded-xl flex items-center justify-center">
+                                <span className="material-symbols-outlined text-indigo-600 dark:text-indigo-400">folder</span>
+                            </div>
+                            <div className="flex-1">
+                                <h3 className="font-semibold mb-2">Project Files</h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">
+                                    Complete project files and templates
+                                </p>
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs text-slate-400">ZIP • 1.2 MB</span>
+                                    <span className="text-xs text-primary font-medium">View Courses</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
