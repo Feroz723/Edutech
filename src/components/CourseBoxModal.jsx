@@ -1,429 +1,319 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import VideoUploadModal from './VideoUploadModal';
+import ResourceUploadModal from './ResourceUploadModal';
 
-export default function CourseBoxModal({ isOpen, onClose }) {
+export default function CourseBoxModal({ isOpen, onClose, initialCourse }) {
   const [selectedCourse, setSelectedCourse] = useState(null);
-  const [editingTutor, setEditingTutor] = useState(false);
-  const [tutorData, setTutorData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    bio: '',
-    expertise: '',
-    experience: '',
-    rating: 0
-  });
+  const [showVideoUpload, setShowVideoUpload] = useState(false);
+  const [showResourceUpload, setShowResourceUpload] = useState(false);
 
-  // Sample course data with mentors
-  const courses = [
+  useEffect(() => {
+    if (initialCourse) {
+      // Map initialCourse name to title for consistency if needed
+      setSelectedCourse({
+        ...initialCourse,
+        title: initialCourse.name || initialCourse.title,
+        videos: initialCourse.videos || []
+      });
+    } else {
+      setSelectedCourse(null);
+    }
+  }, [initialCourse, isOpen]);
+
+  const [courses, setCourses] = useState([
     {
       id: 1,
       title: 'Advanced React Design Patterns',
+      chapters: 12,
+      hours: 8.5,
       category: 'Development',
-      students: 1204,
-      duration: '8.5 hours',
-      level: 'Advanced',
-      rating: 4.8,
       thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCcproyESwAtBxJeCkdywZp38Oo9rkqeX5apcg0j8xOO838c35xrqnMuFGblAb1Nua4ZuLp5jn06CS8FHbo4r9pu8o3fNBWGTQNIIwezziecK2M6ZrZDAz6qlPCyA1yUhIvNT0SRJsBXKGPGHUHZkB7XcT34CMg3_IMKeyAE8mkoOdWgbNlgJyPPX07zivyL-QiBdXIUYi1-Xr-2AvqsNkM6Ybybrz7Uou_u3E2H1E4ZTuFsqfq3_IbnpFMS7S9mBrqjSf5ol2w8Opo',
+      students: 234,
+      rating: 4.8,
+      level: 'Advanced',
+      price: 89.99,
+      description: 'Master advanced React patterns and build scalable applications with high performance.',
+      status: 'Published',
       tutor: {
-        name: 'Dr. Sarah Mitchell',
-        email: 'sarah.mitchell@edutech.com',
-        phone: '+1 234-567-8901',
-        bio: 'Senior React developer with 10+ years of experience building scalable web applications.',
-        expertise: 'React, JavaScript, TypeScript, Node.js',
-        experience: '10 years',
-        rating: 4.9,
-        avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBojQj7MnbGZohBA4TDWOtJQcuxJi9pCC_pti67WICpmWgdbhXgiI0yz045vTUU2eUig-TQn1-n-pviZEYk9NmB0cWwkslkksLRxjzvEsK3x8pUO5R7jNcnC0aWxeRE1CHkb-cOsD-3iEXYdH6hVIDUSjD495NeK78j2a0esNoQFXaqZBJPWDuk5HBqV7ks_HMMFrrR4PC-xSQjpOdCrE5nAZxnSq5UNHB5UYicIkawU1nqzigNRKeP5YakuMV2mUFwNDaBXzYcV2yv'
-      }
+        name: 'Sarah Drasner',
+        role: 'Senior Developer',
+        avatar: 'https://i.pravatar.cc/150?u=sarah',
+        bio: 'Sarah is an award-winning speaker and developer with over 15 years of experience.'
+      },
+      videos: []
     },
     {
       id: 2,
       title: 'JavaScript Mastery',
+      chapters: 15,
+      hours: 12,
       category: 'Development',
-      students: 892,
-      duration: '12 hours',
+      thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCcproyESwAtBxJeCkdywZp38Oo9rkqeX5apcg0j8xOO838c35xrqnMuFGblAb1Nua4ZuLp5jn06CS8FHbo4r9pu8o3fNBWGTQNIIwezziecK2M6ZrZDAz6qlPCyA1yUhIvNT0SRJsBXKGPGHUHZkB7XcT34CMg3_IMKeyAE8mkoOdWgbNlgJyPPX07zivyL-QiBdXIUYi1-Xr-2AvqsNkM6Ybybrz7Uou_u3E2H1E4ZTuFsqfq3_IbnpFMS7S9mBrqjSf5ol2w8Opo',
+      students: 456,
+      rating: 4.9,
       level: 'Intermediate',
-      rating: 4.7,
-      thumbnail: 'https://via.placeholder.com/400x200?text=JavaScript',
+      price: 79.99,
+      description: 'Complete JavaScript guide from basics to advanced concepts including ESNext features.',
+      status: 'Published',
       tutor: {
-        name: 'Prof. Michael Chen',
-        email: 'michael.chen@edutech.com',
-        phone: '+1 234-567-8902',
-        bio: 'JavaScript expert and educator passionate about teaching modern web development.',
-        expertise: 'JavaScript, ES6+, Async Programming, Algorithms',
-        experience: '8 years',
-        rating: 4.8,
-        avatar: 'https://via.placeholder.com/150'
-      }
+        name: 'John Doe',
+        role: 'Full Stack Architect',
+        avatar: 'https://i.pravatar.cc/150?u=john',
+        bio: 'John has built systems for Fortune 500 companies and loves teaching JS.'
+      },
+      videos: []
     },
     {
       id: 3,
       title: 'UI/UX Design Fundamentals',
+      chapters: 10,
+      hours: 6,
       category: 'Design',
-      students: 656,
-      duration: '6 hours',
+      thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCcproyESwAtBxJeCkdywZp38Oo9rkqeX5apcg0j8xOO838c35xrqnMuFGblAb1Nua4ZuLp5jn06CS8FHbo4r9pu8o3fNBWGTQNIIwezziecK2M6ZrZDAz6qlPCyA1yUhIvNT0SRJsBXKGPGHUHZkB7XcT34CMg3_IMKeyAE8mkoOdWgbNlgJyPPX07zivyL-QiBdXIUYi1-Xr-2AvqsNkM6Ybybrz7Uou_u3E2H1E4ZTuFsqfq3_IbnpFMS7S9mBrqjSf5ol2w8Opo',
+      students: 189,
+      rating: 4.7,
       level: 'Beginner',
-      rating: 4.6,
-      thumbnail: 'https://via.placeholder.com/400x200?text=Design',
+      price: 59.99,
+      description: 'Learn the fundamentals of user interface and user experience design with Figma.',
+      status: 'Hidden',
       tutor: {
-        name: 'Emily Rodriguez',
-        email: 'emily.rodriguez@edutech.com',
-        phone: '+1 234-567-8903',
-        bio: 'Creative designer with expertise in user experience and interface design.',
-        expertise: 'Figma, Adobe XD, Prototyping, User Research',
-        experience: '6 years',
-        rating: 4.7,
-        avatar: 'https://via.placeholder.com/150'
-      }
-    },
-    {
-      id: 4,
-      title: 'Node.js Backend Development',
-      category: 'Development',
-      students: 445,
-      duration: '10 hours',
-      level: 'Intermediate',
-      rating: 4.5,
-      thumbnail: 'https://via.placeholder.com/400x200?text=Node.js',
-      tutor: {
-        name: 'James Wilson',
-        email: 'james.wilson@edutech.com',
-        phone: '+1 234-567-8904',
-        bio: 'Backend specialist focused on building scalable server-side applications.',
-        expertise: 'Node.js, Express, MongoDB, REST APIs',
-        experience: '7 years',
-        rating: 4.6,
-        avatar: 'https://via.placeholder.com/150'
-      }
-    },
-    {
-      id: 5,
-      title: 'Digital Marketing Strategy',
-      category: 'Marketing',
-      students: 328,
-      duration: '5 hours',
-      level: 'Beginner',
-      rating: 4.4,
-      thumbnail: 'https://via.placeholder.com/400x200?text=Marketing',
-      tutor: {
-        name: 'Lisa Anderson',
-        email: 'lisa.anderson@edutech.com',
-        phone: '+1 234-567-8905',
-        bio: 'Marketing expert helping businesses grow through digital strategies.',
-        expertise: 'SEO, Social Media, Content Marketing, Analytics',
-        experience: '5 years',
-        rating: 4.5,
-        avatar: 'https://via.placeholder.com/150'
-      }
-    },
-    {
-      id: 6,
-      title: 'Python for Data Science',
-      category: 'Data Science',
-      students: 789,
-      duration: '15 hours',
-      level: 'Advanced',
-      rating: 4.9,
-      thumbnail: 'https://via.placeholder.com/400x200?text=Python',
-      tutor: {
-        name: 'Dr. Robert Kumar',
-        email: 'robert.kumar@edutech.com',
-        phone: '+1 234-567-8906',
-        bio: 'Data scientist and machine learning researcher with academic and industry experience.',
-        expertise: 'Python, Machine Learning, Data Analysis, TensorFlow',
-        experience: '12 years',
-        rating: 4.9,
-        avatar: 'https://via.placeholder.com/150'
-      }
+        name: 'Jane Smith',
+        role: 'Lead Designer',
+        avatar: 'https://i.pravatar.cc/150?u=jane',
+        bio: 'Jane is a creative director with a passion for clean, accessible design.'
+      },
+      videos: []
     }
-  ];
+  ]);
 
-  // Sample students who watched courses
-  const getCourseStudents = (courseId) => {
-    const allStudents = [
-      { name: 'Alex Johnson', email: 'alex@example.com', progress: 85, completedDate: '2024-02-10' },
-      { name: 'Sarah Chen', email: 'sarah@example.com', progress: 92, completedDate: '2024-02-12' },
-      { name: 'Mike Wilson', email: 'mike@example.com', progress: 78, completedDate: '2024-02-08' },
-      { name: 'Emma Davis', email: 'emma@example.com', progress: 95, completedDate: '2024-02-14' },
-      { name: 'John Smith', email: 'john@example.com', progress: 67, completedDate: '2024-02-05' },
-      { name: 'Lisa Brown', email: 'lisa@example.com', progress: 88, completedDate: '2024-02-11' },
-      { name: 'David Lee', email: 'david@example.com', progress: 73, completedDate: '2024-02-09' },
-      { name: 'Anna Martinez', email: 'anna@example.com', progress: 91, completedDate: '2024-02-13' }
-    ];
-    return allStudents.slice(0, Math.floor(Math.random() * 4) + 5);
-  };
-
-  const handleCourseClick = (course) => {
-    setSelectedCourse(course);
-    setTutorData(course.tutor);
-  };
-
-  const handleEditTutor = () => {
-    setEditingTutor(true);
-  };
-
-  const handleSaveTutor = () => {
-    // Update tutor data (in real app, this would save to backend)
-    if (selectedCourse) {
-      selectedCourse.tutor = { ...tutorData };
+  const handleStatusToggle = (courseId) => {
+    setCourses(prev => prev.map(c => 
+      c.id === courseId 
+        ? { ...c, status: c.status === 'Published' ? 'Hidden' : 'Published' } 
+        : c
+    ));
+    if (selectedCourse?.id === courseId) {
+      setSelectedCourse(prev => ({ ...prev, status: prev.status === 'Published' ? 'Hidden' : 'Published' }));
     }
-    setEditingTutor(false);
   };
 
-  const handleTutorChange = (e) => {
-    const { name, value } = e.target;
-    setTutorData(prev => ({ ...prev, [name]: value }));
+  const handleDeleteCourse = (courseId) => {
+    if (window.confirm('Are you sure you want to delete this course? This action cannot be undone.')) {
+      setCourses(prev => prev.filter(c => c.id !== courseId));
+      setSelectedCourse(null);
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'Published': return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
+      case 'Hidden': return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
+      default: return 'bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-400';
+    }
   };
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="p-6 border-b border-slate-200 dark:border-slate-800">
+        <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex-shrink-0">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Course Management</h2>
-              <p className="text-slate-500">View courses and manage tutor assignments</p>
+              <p className="text-slate-500 dark:text-slate-400">Add, edit, or manage your platform courses</p>
             </div>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-            >
+            <button onClick={onClose} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
               <span className="material-symbols-outlined text-slate-500">close</span>
             </button>
           </div>
         </div>
 
-        {!selectedCourse ? (
-          /* Course Grid View */
-          <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {courses.map((course) => (
-                <div
-                  key={course.id}
-                  onClick={() => handleCourseClick(course)}
-                  className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all cursor-pointer group"
-                >
-                  <div className="relative">
-                    <img
-                      src={course.thumbnail}
-                      alt={course.title}
-                      className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    <div className="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 rounded-lg text-xs font-medium">
-                      {course.level}
-                    </div>
-                  </div>
-                  <div className="p-5">
-                    <h3 className="font-bold text-slate-900 dark:text-white mb-2 group-hover:text-primary transition-colors">
-                      {course.title}
-                    </h3>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center justify-between">
-                        <span className="text-slate-500 dark:text-slate-400">Category:</span>
-                        <span className="font-medium text-slate-900 dark:text-white">{course.category}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-slate-500 dark:text-slate-400">Students:</span>
-                        <span className="font-medium text-slate-900 dark:text-white">{course.students}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-slate-500 dark:text-slate-400">Duration:</span>
-                        <span className="font-medium text-slate-900 dark:text-white">{course.duration}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-slate-500 dark:text-slate-400">Rating:</span>
-                        <div className="flex items-center gap-1">
-                          <span className="material-symbols-outlined text-amber-500 text-sm">star</span>
-                          <span className="font-medium text-slate-900 dark:text-white">{course.rating}</span>
-                        </div>
+        <div className="flex-1 overflow-y-auto min-h-0">
+          {!selectedCourse ? (
+            /* Grid View */
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {courses.map((course) => (
+                  <div key={course.id} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all group flex flex-col h-full">
+                    <div className="relative h-40">
+                      <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                      <div className="absolute top-2 right-2 flex gap-2">
+                        <span className={`px-2 py-1 rounded text-xs font-bold ${getStatusColor(course.status)}`}>{course.status}</span>
                       </div>
                     </div>
-                    <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700">
-                      <div className="flex items-center gap-2">
-                        <img
-                          src={course.tutor.avatar}
-                          alt={course.tutor.name}
-                          className="w-6 h-6 rounded-full"
-                        />
-                        <span className="text-xs text-slate-500 dark:text-slate-400">
-                          Tutor: {course.tutor.name}
-                        </span>
+                    <div className="p-5 flex-1 flex flex-col">
+                      <h3 className="font-bold text-slate-900 dark:text-white mb-2 line-clamp-1">{course.title}</h3>
+                      <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 mb-4 flex-1">{course.description}</p>
+                      <div className="flex items-center justify-between text-sm mb-4">
+                        <span className="font-bold text-primary">${course.price}</span>
+                        <span className="text-slate-400 flex items-center gap-1"><span className="material-symbols-outlined text-sm">groups</span> {course.students}</span>
                       </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : (
-          /* Course Detail View */
-          <div className="flex flex-col lg:flex-row h-full">
-            {/* Course Info */}
-            <div className="lg:w-1/2 p-6 border-r border-slate-200 dark:border-slate-800">
-              <button
-                onClick={() => setSelectedCourse(null)}
-                className="mb-4 flex items-center gap-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
-              >
-                <span className="material-symbols-outlined">arrow_back</span>
-                Back to courses
-              </button>
-
-              <div className="space-y-6">
-                <div>
-                  <img
-                    src={selectedCourse.thumbnail}
-                    alt={selectedCourse.title}
-                    className="w-full h-48 object-cover rounded-xl"
-                  />
-                </div>
-
-                <div>
-                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
-                    {selectedCourse.title}
-                  </h3>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-slate-400">category</span>
-                      <span className="text-slate-600 dark:text-slate-400">{selectedCourse.category}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-slate-400">groups</span>
-                      <span className="text-slate-600 dark:text-slate-400">{selectedCourse.students} students</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-slate-400">schedule</span>
-                      <span className="text-slate-600 dark:text-slate-400">{selectedCourse.duration}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-slate-400">star</span>
-                      <span className="text-slate-600 dark:text-slate-400">{selectedCourse.rating} rating</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Tutor Info */}
-                <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <h4 className="font-semibold text-slate-900 dark:text-white">Course Tutor</h4>
-                    {!editingTutor && (
-                      <button
-                        onClick={handleEditTutor}
-                        className="text-sm text-primary hover:text-blue-600 font-medium"
-                      >
-                        Edit Tutor
-                      </button>
-                    )}
-                  </div>
-
-                  {editingTutor ? (
-                    <div className="space-y-3">
-                      <input
-                        type="text"
-                        name="name"
-                        value={tutorData.name}
-                        onChange={handleTutorChange}
-                        className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
-                        placeholder="Tutor Name"
-                      />
-                      <input
-                        type="email"
-                        name="email"
-                        value={tutorData.email}
-                        onChange={handleTutorChange}
-                        className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
-                        placeholder="Email"
-                      />
-                      <input
-                        type="tel"
-                        name="phone"
-                        value={tutorData.phone}
-                        onChange={handleTutorChange}
-                        className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
-                        placeholder="Phone"
-                      />
-                      <textarea
-                        name="bio"
-                        value={tutorData.bio}
-                        onChange={handleTutorChange}
-                        rows={3}
-                        className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white resize-none"
-                        placeholder="Bio"
-                      />
                       <div className="flex gap-2">
-                        <button
-                          onClick={handleSaveTutor}
-                          className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-600"
-                        >
-                          Save
+                        <button onClick={() => setSelectedCourse(course)} className="flex-1 py-2 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-lg transition-all text-sm font-bold flex items-center justify-center gap-1">
+                          <span className="material-symbols-outlined text-sm">settings</span> Manage
                         </button>
-                        <button
-                          onClick={() => setEditingTutor(false)}
-                          className="px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-lg"
-                        >
-                          Cancel
+                        <button onClick={() => handleStatusToggle(course.id)} className="px-3 py-2 bg-slate-100 dark:bg-slate-700 text-slate-600 rounded-lg">
+                          <span className="material-symbols-outlined text-sm">{course.status === 'Published' ? 'visibility_off' : 'visibility'}</span>
                         </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex items-start gap-3">
-                      <img
-                        src={tutorData.avatar}
-                        alt={tutorData.name}
-                        className="w-12 h-12 rounded-full"
-                      />
-                      <div className="flex-1">
-                        <h5 className="font-medium text-slate-900 dark:text-white">{tutorData.name}</h5>
-                        <p className="text-sm text-slate-500">{tutorData.email}</p>
-                        <p className="text-sm text-slate-500">{tutorData.phone}</p>
-                        <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">{tutorData.bio}</p>
-                        <div className="flex items-center gap-4 mt-2 text-xs text-slate-500">
-                          <span>Experience: {tutorData.experience}</span>
-                          <span>Rating: {tutorData.rating} ⭐</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Students List */}
-            <div className="lg:w-1/2 p-6">
-              <h4 className="font-semibold text-slate-900 dark:text-white mb-4">
-                Students Who Watched This Course
-              </h4>
-              <div className="space-y-3 max-h-96 overflow-y-auto">
-                {getCourseStudents(selectedCourse.id).map((student, index) => (
-                  <div key={index} className="bg-slate-50 dark:bg-slate-800 rounded-lg p-3">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-slate-900 dark:text-white">{student.name}</p>
-                        <p className="text-sm text-slate-500">{student.email}</p>
-                      </div>
-                      <div className="text-right">
-                        <div className="flex items-center gap-2">
-                          <div className="w-16 bg-slate-200 dark:bg-slate-700 rounded-full h-2">
-                            <div
-                              className="bg-primary h-2 rounded-full"
-                              style={{ width: `${student.progress}%` }}
-                            />
-                          </div>
-                          <span className="text-xs text-slate-500">{student.progress}%</span>
-                        </div>
-                        <p className="text-xs text-slate-500 mt-1">
-                          Completed: {new Date(student.completedDate).toLocaleDateString()}
-                        </p>
+                        <button onClick={() => handleDeleteCourse(course.id)} className="px-3 py-2 bg-red-50 dark:bg-red-900/20 text-red-600 rounded-lg">
+                          <span className="material-symbols-outlined text-sm">delete</span>
+                        </button>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
+          ) : (
+            /* Detail View */
+            <div className="flex flex-col h-full">
+              <div className="flex-1 p-6">
+                {/* Banner */}
+                <div className="flex justify-between items-start mb-8 bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-200 dark:border-slate-700">
+                  <div className="flex gap-6">
+                    <img src={selectedCourse.thumbnail} alt="" className="w-32 h-32 rounded-full mx-auto mb-4 border-4 border-slate-50 dark:border-slate-800 shadow-sm" />
+                    <div>
+                      <div className="flex items-center gap-3 mb-2">
+                        <span className={`px-2 py-1 rounded text-xs font-bold ${getStatusColor(selectedCourse.status)}`}>{selectedCourse.status}</span>
+                        <span className="text-slate-500 text-sm">{selectedCourse.category}</span>
+                      </div>
+                      <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{selectedCourse.title}</h2>
+                      <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 max-w-xl">{selectedCourse.description}</p>
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <button onClick={() => setShowVideoUpload(true)} className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2 font-bold shadow-lg shadow-primary/20">
+                      <span className="material-symbols-outlined">video_call</span> Add Video
+                    </button>
+                    <button onClick={() => setShowResourceUpload(true)} className="px-4 py-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 transition-colors flex items-center gap-2 font-bold">
+                      <span className="material-symbols-outlined">attach_file</span> Add Resources
+                    </button>
+                    {!initialCourse && (
+              <button onClick={() => setSelectedCourse(null)} className="px-4 py-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg text-sm font-bold hover:bg-slate-50 transition-colors">
+                Back to List
+              </button>
+            )}
           </div>
-        )}
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  {/* Left: Videos & Resources */}
+                  <div className="lg:col-span-2 space-y-6">
+                    <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                      <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+                        <span className="material-symbols-outlined text-primary">video_library</span> Series of Videos
+                      </h3>
+                      
+
+                      <div className="space-y-4">
+                        {selectedCourse.videos?.length > 0 ? (
+                          selectedCourse.videos.map((video, idx) => (
+                            <div key={video.id} className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
+                              <div className="bg-slate-50 dark:bg-slate-800/50 p-4 flex items-center justify-between border-b border-slate-200 dark:border-slate-700">
+                                <div className="flex items-center gap-3">
+                                  <span className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">{idx + 1}</span>
+                                  <h4 className="font-semibold text-slate-900 dark:text-white">{video.title}</h4>
+                                </div>
+                                <div className="flex gap-2">
+                                  <button className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-slate-500 transition-colors"><span className="material-symbols-outlined text-sm">edit</span></button>
+                                  <button className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 rounded-lg transition-colors"><span className="material-symbols-outlined text-sm">delete</span></button>
+                                </div>
+                              </div>
+                              <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block flex items-center gap-1">
+                                    <span className="material-symbols-outlined text-xs">notes</span> Reference Notes
+                                  </label>
+                                  <div className="text-sm text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/30 p-3 rounded-lg border border-slate-100 dark:border-slate-700/50 italic min-h-[100px]">
+                                    {video.notes || 'No notes added yet.'}
+                                  </div>
+                                </div>
+                                <div>
+                                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block flex items-center justify-between">
+                                    <span className="flex items-center gap-1">
+                                      <span className="material-symbols-outlined text-xs">attach_file</span> Attached Files & Resources
+                                    </span>
+                                    <input
+                                      type="file"
+                                      className="hidden"
+                                      id={`file-upload-${video.id}`}
+                                      multiple
+                                      accept=".pdf,image/*,.zip"
+                                    />
+                                    <label
+                                      htmlFor={`file-upload-${video.id}`}
+                                      className="text-primary hover:text-blue-600 cursor-pointer text-[10px] font-black uppercase flex items-center gap-1"
+                                    >
+                                      <span className="material-symbols-outlined text-[12px]">upload</span>
+                                      Upload PDF/Image
+                                    </label>
+                                  </label>
+                                  <div className="space-y-2">
+                                    {video.files?.map((file, fidx) => (
+                                      <div key={fidx} className="flex items-center justify-between p-2 bg-white dark:bg-slate-800 rounded-lg text-sm border border-slate-100 dark:border-slate-700/50 shadow-sm group">
+                                        <span className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
+                                          <span className="material-symbols-outlined text-sm text-primary">description</span> {file}
+                                        </span>
+                                        <span className="material-symbols-outlined text-sm text-slate-400 cursor-pointer hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">close</span>
+                                      </div>
+                                    ))}
+                                    <button className="w-full py-2 border border-dashed border-slate-300 dark:border-slate-700 rounded-lg text-xs text-slate-500 hover:text-primary hover:border-primary transition-all flex items-center justify-center gap-1 mt-2 font-medium bg-slate-50/50 dark:bg-slate-800/50">
+                                      <span className="material-symbols-outlined text-sm">add</span> Add File/Resource
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="text-center py-12 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl bg-slate-50/30 dark:bg-slate-800/30">
+                            <span className="material-symbols-outlined text-4xl text-slate-300 mb-2">movie</span>
+                            <p className="text-slate-500 dark:text-slate-400">No videos in this course yet.</p>
+                            <button onClick={() => setShowVideoUpload(true)} className="mt-4 px-4 py-2 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-lg transition-all text-sm font-bold">
+                              Upload First Video
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right: Instructor & Quick Stats */}
+                  <div className="space-y-6">
+                    <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm text-center">
+                      <img src={selectedCourse.tutor.avatar} alt="" className="w-20 h-20 rounded-full mx-auto mb-4 border-4 border-slate-50 dark:border-slate-800 shadow-sm" />
+                      <h4 className="font-bold text-slate-900 dark:text-white">{selectedCourse.tutor.name}</h4>
+                      <p className="text-sm text-primary font-medium mb-4">{selectedCourse.tutor.role}</p>
+                      <button className="w-full py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-bold hover:bg-slate-200 transition-colors">Edit Instructor Profile</button>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-slate-900 to-slate-800 dark:from-slate-800 dark:to-slate-950 p-6 rounded-2xl text-white shadow-lg border border-white/10">
+                      <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-6 flex items-center gap-2">
+                        <span className="material-symbols-outlined text-xs">analytics</span> Performance
+                      </h3>
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center pb-4 border-b border-white/5">
+                          <span className="text-slate-400 text-sm">Enrolled Students</span>
+                          <span className="text-xl font-bold">{selectedCourse.students}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-slate-400 text-sm">Total Revenue</span>
+                          <span className="text-xl font-bold text-green-400">${(selectedCourse.students * selectedCourse.price).toLocaleString()}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
+
+      <VideoUploadModal isOpen={showVideoUpload} onClose={() => setShowVideoUpload(false)} />
+      <ResourceUploadModal isOpen={showResourceUpload} onClose={() => setShowResourceUpload(false)} />
     </div>
   );
 }

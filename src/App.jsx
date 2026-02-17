@@ -7,6 +7,7 @@ import Overview from './components/sections/Overview';
 import Courses from './components/sections/Courses';
 import Students from './components/sections/Students';
 import Analytics from './components/sections/Analytics';
+import Settings from './components/sections/Settings';
 import StudentDashboard from './components/StudentDashboard';
 import './App.css';
 
@@ -33,6 +34,8 @@ function AdminDashboard() {
         return <Students />;
       case 'analytics':
         return <Analytics />;
+      case 'settings':
+        return <Settings />;
       default:
         return <Overview />;
     }
@@ -43,7 +46,7 @@ function AdminDashboard() {
       <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 transition-colors duration-200 flex w-full">
         <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} toggleDarkMode={toggleDarkMode} />
         <main className="flex-1 flex flex-col overflow-hidden">
-          <Header />
+          <Header toggleDarkMode={toggleDarkMode} darkMode={darkMode} />
           <div className="flex-1 overflow-y-auto p-8">
             <div className="max-w-7xl mx-auto">
               {renderContent()}

@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import ProfileModal from './ProfileModal';
 
-export default function Header() {
+export default function Header({ toggleDarkMode, darkMode }) {
   const fileRef = useRef(null);
   const [profileSrc, setProfileSrc] = useState(null);
   const [showProfileModal, setShowProfileModal] = useState(false);
@@ -43,6 +43,24 @@ export default function Header() {
 
         {/* Right Section */}
         <div className="flex items-center gap-6">
+          {/* Theme Toggle Button */}
+          <button
+            onClick={toggleDarkMode}
+            className={`w-12 h-6 rounded-full transition-all duration-300 relative flex items-center px-1 shadow-inner ${
+              darkMode ? 'bg-primary' : 'bg-slate-200'
+            }`}
+          >
+            <div
+              className={`w-4 h-4 rounded-full bg-white shadow-md transition-all duration-300 flex items-center justify-center transform ${
+                darkMode ? 'translate-x-6' : 'translate-x-0'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[10px] text-slate-900 font-bold">
+                {darkMode ? 'dark_mode' : 'light_mode'}
+              </span>
+            </div>
+          </button>
+
           {/* Notifications */}
           <div className="relative">
             <span className="material-symbols-outlined text-slate-500 hover:text-primary cursor-pointer">notifications</span>
