@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
+import api from '../lib/api';
 
-export default function VideoUploadModal({ isOpen, onClose }) {
+export default function VideoUploadModal({ isOpen, onClose, courseId, onLessonAdded }) {
   const fileRef = useRef(null);
   const [videoData, setVideoData] = useState({
     title: '',
@@ -21,12 +22,16 @@ export default function VideoUploadModal({ isOpen, onClose }) {
     captions: false
   });
 
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState('');
+
   const handleResourceUpload = (e) => {
     const files = e.target.files;
     if (files && files.length > 0) {
-      setVideoData(prev => ({ 
-        ...prev, 
-        resourceFiles: [...prev.resourceFiles, ...Array.from(files)] 
+      setVideoData(prev => ({
+        ...prev,
+        resourceFiles: [...prev.resourceFiles, ...Array.from(files)]
       }));
     }
   };
@@ -37,8 +42,6 @@ export default function VideoUploadModal({ isOpen, onClose }) {
       resourceFiles: prev.resourceFiles.filter((_, i) => i !== index)
     }));
   };
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [isUploading, setIsUploading] = useState(false);
 
   const handleVideoUpload = (e) => {
     const file = e.target.files && e.target.files[0];
@@ -58,42 +61,67 @@ export default function VideoUploadModal({ isOpen, onClose }) {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsUploading(true);
-    
-    // Simulate upload progress
-    const interval = setInterval(() => {
-      setUploadProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setTimeout(() => {
-            setIsUploading(false);
-            onClose();
-            // Reset form
-            setVideoData({
-              title: '',
-              concept: '',
-              description: '',
-              category: '',
-              duration: '',
-              thumbnail: '',
-              videoFile: null,
-              tags: '',
-              level: 'beginner',
-              notes: '',
-              source: 'local',
-              visibility: 'public',
-              instructor: '',
-              language: 'English',
-              captions: false
-            });
-          }, 1000);
-          return 100;
+    if (!courseId) {
+      alert('Course ID is missing');
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+      setUploadProgress(10);
+      setUploadStatus('Uploading video to storage...');
+
+      // 1. Upload Video
+      const formData = new FormData();
+      formData.append('file', videoData.videoFile);
+      formData.append('bucket', 'course-media');
+      formData.append('path', `courses/${courseId}/videos/${Date.now()}_${videoData.videoFile.name}`);
+
+      const uploadRes = await api.post('/media/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          setUploadProgress(Math.min(percentCompleted * 0.8, 80)); // 0-80% for video upload
         }
-        return prev + 10;
       });
-    }, 200);
+
+      const videoUrl = uploadRes.data.path;
+      setUploadProgress(85);
+      setUploadStatus('Creating lesson entry...');
+
+      // 2. Create Lesson
+      await api.post(`/lessons/${courseId}`, {
+        courseId: courseId,
+        title: videoData.title,
+        content: videoData.description || videoData.concept,
+        video_url: videoUrl,
+        duration: parseInt(videoData.duration) || 0
+      });
+
+      setUploadProgress(100);
+      setUploadStatus('Upload complete!');
+
+      setTimeout(() => {
+        setIsUploading(false);
+        onLessonAdded?.();
+        onClose();
+        // Reset form
+        setVideoData({
+          title: '', concept: '', description: '', category: '', duration: '',
+          thumbnail: '', videoFile: null, resourceFiles: [], tags: '',
+          level: 'beginner', notes: '', source: 'local', visibility: 'public',
+          instructor: '', language: 'English', captions: false
+        });
+        setUploadProgress(0);
+      }, 1000);
+
+    } catch (err) {
+      console.error('Upload failed:', err);
+      alert('Upload failed: ' + (err.response?.data?.error || err.message));
+      setIsUploading(false);
+    }
   };
 
   const handleChange = (e) => {
@@ -218,98 +246,98 @@ export default function VideoUploadModal({ isOpen, onClose }) {
               Video Information
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                Video Title *
-              </label>
-              <input
-                type="text"
-                name="title"
-                value={videoData.title}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
-                placeholder="Enter video title"
-                required
-              />
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Video Title *
+                </label>
+                <input
+                  type="text"
+                  name="title"
+                  value={videoData.title}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
+                  placeholder="Enter video title"
+                  required
+                />
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                Concept *
-              </label>
-              <input
-                type="text"
-                name="concept"
-                value={videoData.concept}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
-                placeholder="Main concept covered"
-                required
-              />
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Concept *
+                </label>
+                <input
+                  type="text"
+                  name="concept"
+                  value={videoData.concept}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
+                  placeholder="Main concept covered"
+                  required
+                />
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                Category
-              </label>
-              <select
-                name="category"
-                value={videoData.category}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
-              >
-                <option value="">Select category</option>
-                <option value="development">Development</option>
-                <option value="design">Design</option>
-                <option value="business">Business</option>
-                <option value="marketing">Marketing</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Category
+                </label>
+                <select
+                  name="category"
+                  value={videoData.category}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
+                >
+                  <option value="">Select category</option>
+                  <option value="development">Development</option>
+                  <option value="design">Design</option>
+                  <option value="business">Business</option>
+                  <option value="marketing">Marketing</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                Duration (minutes)
-              </label>
-              <input
-                type="number"
-                name="duration"
-                value={videoData.duration}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
-                placeholder="Video duration"
-              />
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Duration (minutes)
+                </label>
+                <input
+                  type="number"
+                  name="duration"
+                  value={videoData.duration}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
+                  placeholder="Video duration"
+                />
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                Level
-              </label>
-              <select
-                name="level"
-                value={videoData.level}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
-              >
-                <option value="beginner">Beginner</option>
-                <option value="intermediate">Intermediate</option>
-                <option value="advanced">Advanced</option>
-              </select>
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Level
+                </label>
+                <select
+                  name="level"
+                  value={videoData.level}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
+                >
+                  <option value="beginner">Beginner</option>
+                  <option value="intermediate">Intermediate</option>
+                  <option value="advanced">Advanced</option>
+                </select>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                Tags (comma separated)
-              </label>
-              <input
-                type="text"
-                name="tags"
-                value={videoData.tags}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
-                placeholder="react, javascript, tutorial"
-              />
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Tags (comma separated)
+                </label>
+                <input
+                  type="text"
+                  name="tags"
+                  value={videoData.tags}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
+                  placeholder="react, javascript, tutorial"
+                />
+              </div>
             </div>
           </div>
 
@@ -404,7 +432,7 @@ export default function VideoUploadModal({ isOpen, onClose }) {
               <span className="material-symbols-outlined">description</span>
               Notes & Related Resources
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
@@ -452,7 +480,7 @@ export default function VideoUploadModal({ isOpen, onClose }) {
                         </span>
                         <span className="truncate">{file.name}</span>
                       </div>
-                      <button 
+                      <button
                         type="button"
                         onClick={() => removeResource(index)}
                         className="text-slate-400 hover:text-red-500"
@@ -492,7 +520,7 @@ export default function VideoUploadModal({ isOpen, onClose }) {
           {isUploading && (
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-slate-600 dark:text-slate-400">Uploading...</span>
+                <span className="text-slate-600 dark:text-slate-400">{uploadStatus || 'Uploading...'}</span>
                 <span className="text-primary font-medium">{uploadProgress}%</span>
               </div>
               <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">

@@ -1,4 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import api from '../../lib/api';
 
 export default function AIChatbot({ isOpen, onClose }) {
     const [messages, setMessages] = useState([
@@ -35,17 +38,28 @@ export default function AIChatbot({ isOpen, onClose }) {
         setInputMessage('');
         setIsTyping(true);
 
-        // Simulate AI response
-        setTimeout(() => {
+        try {
+            const response = await api.post('/chat', { message: inputMessage });
+
             const aiResponse = {
                 id: Date.now() + 1,
-                text: "I understand your question. Let me help you with that. This is a simulated AI response for demonstration purposes.",
+                text: response.data.response,
                 sender: 'ai',
                 timestamp: new Date()
             };
             setMessages(prev => [...prev, aiResponse]);
+        } catch (error) {
+            console.error('Chat error:', error);
+            const errorMessage = {
+                id: Date.now() + 1,
+                text: "I'm sorry, I'm having trouble connecting right now. Please try again later.",
+                sender: 'ai',
+                timestamp: new Date()
+            };
+            setMessages(prev => [...prev, errorMessage]);
+        } finally {
             setIsTyping(false);
-        }, 1500);
+        }
     };
 
     const handleKeyPress = (e) => {
@@ -58,7 +72,7 @@ export default function AIChatbot({ isOpen, onClose }) {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed bottom-24 right-8 w-96 h-[500px] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 z-50 flex flex-col">
+        <div className="fixed bottom-32 right-10 w-[400px] h-[600px] bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl border border-slate-200 dark:border-slate-700 z-[100] flex flex-col overflow-hidden animate-slide-up">
             {/* Header */}
             <div className="bg-primary text-white p-4 rounded-t-2xl flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -78,30 +92,36 @@ export default function AIChatbot({ isOpen, onClose }) {
                 </button>
             </div>
 
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            {/* Messages container */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-3 chatbot-messages-container relative">
                 {messages.map((message) => (
                     <div
                         key={message.id}
                         className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                     >
                         <div
-                            className={`max-w-[80%] p-3 rounded-2xl ${
-                                message.sender === 'user'
-                                    ? 'bg-primary text-white rounded-br-sm'
-                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-bl-sm'
-                            }`}
+                            className={`max-w-[80%] p-3 rounded-2xl ${message.sender === 'user'
+                                ? 'bg-primary text-white rounded-br-sm'
+                                : 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-bl-sm'
+                                }`}
                         >
-                            <p className="text-sm">{message.text}</p>
-                            <p className={`text-xs mt-1 ${
-                                message.sender === 'user' ? 'text-blue-100' : 'text-slate-400'
-                            }`}>
+                            {message.sender === 'ai' ? (
+                                <div className="text-sm markdown-content prose-slate dark:prose-invert max-w-full">
+                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                        {typeof message.text === 'string' ? message.text : String(message.text || '')}
+                                    </ReactMarkdown>
+                                </div>
+                            ) : (
+                                <p className="text-sm">{message.text}</p>
+                            )}
+                            <p className={`text-xs mt-1 ${message.sender === 'user' ? 'text-blue-100' : 'text-slate-400'
+                                }`}>
                                 {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </p>
                         </div>
                     </div>
                 ))}
-                
+
                 {isTyping && (
                     <div className="flex justify-start">
                         <div className="bg-slate-100 dark:bg-slate-800 p-3 rounded-2xl rounded-bl-sm">

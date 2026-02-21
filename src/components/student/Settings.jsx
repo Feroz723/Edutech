@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
+import { auth } from '../../config/firebaseClient';
+import api from '../../lib/api';
 
-export default function Settings() {
+export default function Settings({ onBack: onBackProp }) {
     const { user, logout } = useAuth();
-    
+
     const [activeTab, setActiveTab] = useState('account');
     const [formData, setFormData] = useState({
         currentPassword: '',
@@ -28,7 +31,7 @@ export default function Settings() {
             ...prev,
             [name]: type === 'checkbox' ? checked : value
         }));
-        
+
         // Clear error for this field
         if (errors[name]) {
             setErrors(prev => ({
@@ -40,40 +43,45 @@ export default function Settings() {
 
     const validatePasswordForm = () => {
         const newErrors = {};
-        
+
         if (!formData.currentPassword) {
             newErrors.currentPassword = 'Current password is required';
         }
-        
+
         if (!formData.newPassword) {
             newErrors.newPassword = 'New password is required';
         } else if (formData.newPassword.length < 8) {
             newErrors.newPassword = 'Password must be at least 8 characters';
         }
-        
+
         if (!formData.confirmPassword) {
             newErrors.confirmPassword = 'Please confirm your new password';
         } else if (formData.newPassword !== formData.confirmPassword) {
             newErrors.confirmPassword = 'Passwords do not match';
         }
-        
+
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
 
     const handlePasswordChange = async (e) => {
         e.preventDefault();
-        
+
         if (!validatePasswordForm()) {
             return;
         }
-        
+
         setIsSubmitting(true);
-        
+
         try {
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            
+            // 1. Re-authenticate user (required by Firebase for password change)
+            const userAuth = auth.currentUser;
+            const credential = EmailAuthProvider.credential(userAuth.email, formData.currentPassword);
+            await reauthenticateWithCredential(userAuth, credential);
+
+            // 2. Update password
+            await updatePassword(userAuth, formData.newPassword);
+
             // Reset form
             setFormData(prev => ({
                 ...prev,
@@ -81,12 +89,16 @@ export default function Settings() {
                 newPassword: '',
                 confirmPassword: ''
             }));
-            
+
             setShowPasswordForm(false);
             alert('Password changed successfully!');
         } catch (error) {
             console.error('Error changing password:', error);
-            alert('Error changing password. Please try again.');
+            if (error.code === 'auth/wrong-password') {
+                alert('Current password is incorrect.');
+            } else {
+                alert('Error changing password: ' + (error.message || 'Please try again.'));
+            }
         } finally {
             setIsSubmitting(false);
         }
@@ -94,11 +106,19 @@ export default function Settings() {
 
     const handleSaveSettings = async () => {
         setIsSubmitting(true);
-        
+
         try {
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
+            // Persist notification preferences and other settings
+            const response = await api.put('/users/profile', {
+                emailNotifications: formData.emailNotifications,
+                pushNotifications: formData.pushNotifications,
+                smsNotifications: formData.smsNotifications,
+                marketingEmails: formData.marketingEmails,
+                language: formData.language,
+                timezone: formData.timezone,
+                theme: formData.theme
+            });
+
             alert('Settings saved successfully!');
         } catch (error) {
             console.error('Error saving settings:', error);
@@ -109,8 +129,7 @@ export default function Settings() {
     };
 
     const handleBack = () => {
-        const event = new CustomEvent('navigateToDashboard');
-        window.dispatchEvent(event);
+        if (onBackProp) onBackProp();
     };
 
     const settingsTabs = [
@@ -147,11 +166,10 @@ export default function Settings() {
                                     <button
                                         key={tab.id}
                                         onClick={() => setActiveTab(tab.id)}
-                                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-colors ${
-                                            activeTab === tab.id
-                                                ? 'bg-primary text-white'
-                                                : 'hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'
-                                        }`}
+                                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-colors ${activeTab === tab.id
+                                            ? 'bg-primary text-white'
+                                            : 'hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'
+                                            }`}
                                     >
                                         <span className="material-symbols-outlined text-xl">
                                             {tab.icon}
@@ -185,7 +203,7 @@ export default function Settings() {
                                                 <p className="font-semibold">Password</p>
                                                 <p className="text-sm text-slate-500 dark:text-slate-400">Last changed 30 days ago</p>
                                             </div>
-                                            <button 
+                                            <button
                                                 onClick={() => setShowPasswordForm(!showPasswordForm)}
                                                 className="text-primary hover:underline text-sm font-medium"
                                             >

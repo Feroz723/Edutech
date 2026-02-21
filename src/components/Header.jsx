@@ -1,7 +1,9 @@
 import React, { useRef, useState, useEffect } from 'react';
 import ProfileModal from './ProfileModal';
+import { useAuth } from '../context/AuthContext';
 
 export default function Header({ toggleDarkMode, darkMode }) {
+  const { user } = useAuth();
   const fileRef = useRef(null);
   const [profileSrc, setProfileSrc] = useState(null);
   const [showProfileModal, setShowProfileModal] = useState(false);
@@ -10,7 +12,7 @@ export default function Header({ toggleDarkMode, darkMode }) {
     try {
       const saved = localStorage.getItem('adminProfile');
       if (saved) setProfileSrc(saved);
-    } catch (e) {}
+    } catch (e) { }
   }, []);
 
   const onPick = (e) => {
@@ -21,7 +23,7 @@ export default function Header({ toggleDarkMode, darkMode }) {
       setProfileSrc(reader.result);
       try {
         localStorage.setItem('adminProfile', reader.result);
-      } catch (e) {}
+      } catch (e) { }
     };
     reader.readAsDataURL(f);
   };
@@ -46,14 +48,12 @@ export default function Header({ toggleDarkMode, darkMode }) {
           {/* Theme Toggle Button */}
           <button
             onClick={toggleDarkMode}
-            className={`w-12 h-6 rounded-full transition-all duration-300 relative flex items-center px-1 shadow-inner ${
-              darkMode ? 'bg-primary' : 'bg-slate-200'
-            }`}
+            className={`w-12 h-6 rounded-full transition-all duration-300 relative flex items-center px-1 shadow-inner ${darkMode ? 'bg-primary' : 'bg-slate-200'
+              }`}
           >
             <div
-              className={`w-4 h-4 rounded-full bg-white shadow-md transition-all duration-300 flex items-center justify-center transform ${
-                darkMode ? 'translate-x-6' : 'translate-x-0'
-              }`}
+              className={`w-4 h-4 rounded-full bg-white shadow-md transition-all duration-300 flex items-center justify-center transform ${darkMode ? 'translate-x-6' : 'translate-x-0'
+                }`}
             >
               <span className="material-symbols-outlined text-[10px] text-slate-900 font-bold">
                 {darkMode ? 'dark_mode' : 'light_mode'}
@@ -72,14 +72,16 @@ export default function Header({ toggleDarkMode, darkMode }) {
           {/* User Profile (click to open modal) */}
           <div className="flex items-center gap-3 border-l border-slate-200 dark:border-slate-800 pl-6">
             <div className="text-right">
-              <p className="text-sm font-semibold text-slate-900 dark:text-white">Alex Johnson</p>
-              <p className="text-xs text-slate-500">Super Admin</p>
+              <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                {user?.name || user?.fullName || 'Administrator'}
+              </p>
+              <p className="text-xs text-slate-500 uppercase font-bold tracking-widest">{user?.role || 'Super Admin'}</p>
             </div>
             <div onClick={() => setShowProfileModal(true)} className="cursor-pointer">
               <img
-                alt="Admin Profile"
+                alt="User Profile"
                 className="w-10 h-10 rounded-full object-cover ring-2 ring-slate-100 dark:ring-slate-800 hover:ring-primary transition-all"
-                src={profileSrc || 'https://lh3.googleusercontent.com/aida-public/AB6AXuChMOz1dv-upp3dHSWnij8O_BzmYAIcEiu6bxUGDEJAhuLE98rtjxwuHPKf3kxbA4wyzOLzIfQZRlW8TDvZqD1jSmfuQx2uCAqZ5foAQA7-VR5NW4rN1uDeLE3tLNtR8jMb68nLIa5Ce6G78dXH8l8SwWQhN8GaDYDbwUPxFSpgWPZRLujHGA3Xsn3bI527slvpOUomZP6Ht00NvbiFAKEn9XgkptY18mcfbUF_QLkeecO-_jzvhumdCaGw1zDtoW_Wf4KfOeT-Djpd'}
+                src={user?.avatar || profileSrc || 'https://lh3.googleusercontent.com/aida-public/AB6AXuChMOz1dv-upp3dHSWnij8O_BzmYAIcEiu6bxUGDEJAhuLE98rtjxwuHPKf3kxbA4wyzOLzIfQZRlW8TDvZqD1jSmfuQx2uCAqZ5foAQA7-VR5NW4rN1uDeLE3tLNtR8jMb68nLIa5Ce6G78dXH8l8SwWQhN8GaDYDbwUPxFSpgWPZRLujHGA3Xsn3bI527slvpOUomZP6Ht00NvbiFAKEn9XgkptY18mcfbUF_QLkeecO-_jzvhumdCaGw1zDtoW_Wf4KfOeT-Djpd'}
               />
             </div>
             <input ref={fileRef} onChange={onPick} type="file" accept="image/*" className="hidden" />
@@ -88,9 +90,9 @@ export default function Header({ toggleDarkMode, darkMode }) {
       </header>
 
       {/* Profile Modal */}
-      <ProfileModal 
-        isOpen={showProfileModal} 
-        onClose={() => setShowProfileModal(false)} 
+      <ProfileModal
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
       />
     </>
   );

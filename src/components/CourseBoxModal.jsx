@@ -1,113 +1,195 @@
 import React, { useState, useEffect } from 'react';
 import VideoUploadModal from './VideoUploadModal';
 import ResourceUploadModal from './ResourceUploadModal';
+import ConfirmModal from './ConfirmModal';
+import api from '../lib/api';
 
 export default function CourseBoxModal({ isOpen, onClose, initialCourse }) {
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [showVideoUpload, setShowVideoUpload] = useState(false);
   const [showResourceUpload, setShowResourceUpload] = useState(false);
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [lessons, setLessons] = useState([]);
+  const [selectedLessonForResource, setSelectedLessonForResource] = useState(null);
+
+  // Missing States for Deletion Modals
+  const [showLessonDeleteModal, setShowLessonDeleteModal] = useState(false);
+  const [lessonToDelete, setLessonToDelete] = useState(null);
+  const [isDeletingLesson, setIsDeletingLesson] = useState(false);
+
+  const [showResourceDeleteModal, setShowResourceDeleteModal] = useState(false);
+  const [resourceToDelete, setResourceToDelete] = useState(null);
+  const [isDeletingResource, setIsDeletingResource] = useState(false);
+
+  const [isUpdatingThumbnail, setIsUpdatingThumbnail] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchCourses();
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (initialCourse) {
-      // Map initialCourse name to title for consistency if needed
       setSelectedCourse({
         ...initialCourse,
-        title: initialCourse.name || initialCourse.title,
-        videos: initialCourse.videos || []
+        title: initialCourse.title || initialCourse.name,
+        instructorId: initialCourse.instructorId || initialCourse.instructor_id,
+        thumbnailUrl: initialCourse.thumbnailUrl || initialCourse.thumbnail_url,
+        createdAt: initialCourse.createdAt || initialCourse.created_at,
+        updatedAt: initialCourse.updatedAt || initialCourse.updated_at
       });
+      fetchLessons(initialCourse.id);
     } else {
       setSelectedCourse(null);
+      setLessons([]);
     }
   }, [initialCourse, isOpen]);
 
-  const [courses, setCourses] = useState([
-    {
-      id: 1,
-      title: 'Advanced React Design Patterns',
-      chapters: 12,
-      hours: 8.5,
-      category: 'Development',
-      thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCcproyESwAtBxJeCkdywZp38Oo9rkqeX5apcg0j8xOO838c35xrqnMuFGblAb1Nua4ZuLp5jn06CS8FHbo4r9pu8o3fNBWGTQNIIwezziecK2M6ZrZDAz6qlPCyA1yUhIvNT0SRJsBXKGPGHUHZkB7XcT34CMg3_IMKeyAE8mkoOdWgbNlgJyPPX07zivyL-QiBdXIUYi1-Xr-2AvqsNkM6Ybybrz7Uou_u3E2H1E4ZTuFsqfq3_IbnpFMS7S9mBrqjSf5ol2w8Opo',
-      students: 234,
-      rating: 4.8,
-      level: 'Advanced',
-      price: 89.99,
-      description: 'Master advanced React patterns and build scalable applications with high performance.',
-      status: 'Published',
-      tutor: {
-        name: 'Sarah Drasner',
-        role: 'Senior Developer',
-        avatar: 'https://i.pravatar.cc/150?u=sarah',
-        bio: 'Sarah is an award-winning speaker and developer with over 15 years of experience.'
-      },
-      videos: []
-    },
-    {
-      id: 2,
-      title: 'JavaScript Mastery',
-      chapters: 15,
-      hours: 12,
-      category: 'Development',
-      thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCcproyESwAtBxJeCkdywZp38Oo9rkqeX5apcg0j8xOO838c35xrqnMuFGblAb1Nua4ZuLp5jn06CS8FHbo4r9pu8o3fNBWGTQNIIwezziecK2M6ZrZDAz6qlPCyA1yUhIvNT0SRJsBXKGPGHUHZkB7XcT34CMg3_IMKeyAE8mkoOdWgbNlgJyPPX07zivyL-QiBdXIUYi1-Xr-2AvqsNkM6Ybybrz7Uou_u3E2H1E4ZTuFsqfq3_IbnpFMS7S9mBrqjSf5ol2w8Opo',
-      students: 456,
-      rating: 4.9,
-      level: 'Intermediate',
-      price: 79.99,
-      description: 'Complete JavaScript guide from basics to advanced concepts including ESNext features.',
-      status: 'Published',
-      tutor: {
-        name: 'John Doe',
-        role: 'Full Stack Architect',
-        avatar: 'https://i.pravatar.cc/150?u=john',
-        bio: 'John has built systems for Fortune 500 companies and loves teaching JS.'
-      },
-      videos: []
-    },
-    {
-      id: 3,
-      title: 'UI/UX Design Fundamentals',
-      chapters: 10,
-      hours: 6,
-      category: 'Design',
-      thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCcproyESwAtBxJeCkdywZp38Oo9rkqeX5apcg0j8xOO838c35xrqnMuFGblAb1Nua4ZuLp5jn06CS8FHbo4r9pu8o3fNBWGTQNIIwezziecK2M6ZrZDAz6qlPCyA1yUhIvNT0SRJsBXKGPGHUHZkB7XcT34CMg3_IMKeyAE8mkoOdWgbNlgJyPPX07zivyL-QiBdXIUYi1-Xr-2AvqsNkM6Ybybrz7Uou_u3E2H1E4ZTuFsqfq3_IbnpFMS7S9mBrqjSf5ol2w8Opo',
-      students: 189,
-      rating: 4.7,
-      level: 'Beginner',
-      price: 59.99,
-      description: 'Learn the fundamentals of user interface and user experience design with Figma.',
-      status: 'Hidden',
-      tutor: {
-        name: 'Jane Smith',
-        role: 'Lead Designer',
-        avatar: 'https://i.pravatar.cc/150?u=jane',
-        bio: 'Jane is a creative director with a passion for clean, accessible design.'
-      },
-      videos: []
+  useEffect(() => {
+    if (selectedCourse && !lessons.length) {
+      fetchLessons(selectedCourse.id);
     }
-  ]);
+  }, [selectedCourse]);
 
-  const handleStatusToggle = (courseId) => {
-    setCourses(prev => prev.map(c => 
-      c.id === courseId 
-        ? { ...c, status: c.status === 'Published' ? 'Hidden' : 'Published' } 
-        : c
-    ));
-    if (selectedCourse?.id === courseId) {
-      setSelectedCourse(prev => ({ ...prev, status: prev.status === 'Published' ? 'Hidden' : 'Published' }));
+  const fetchCourses = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('/courses/all');
+      setCourses(response.data || []);
+    } catch (err) {
+      setError(err.message || 'Failed to fetch courses');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleDeleteCourse = (courseId) => {
+  const fetchLessons = async (courseId) => {
+    try {
+      const response = await api.get(`/lessons/${courseId}`);
+      setLessons(response.data || []);
+    } catch (err) {
+      console.error('Failed to fetch lessons:', err);
+    }
+  };
+
+  const handleStatusToggle = async (courseId, currentStatus) => {
+    try {
+      const newStatus = currentStatus === 'published' ? 'draft' : 'published';
+      await api.patch(`/courses/${courseId}/status`, { status: newStatus });
+
+      setCourses(prev => prev.map(c =>
+        c.id === courseId ? { ...c, status: newStatus } : c
+      ));
+
+      if (selectedCourse?.id === courseId) {
+        setSelectedCourse(prev => ({ ...prev, status: newStatus }));
+      }
+    } catch (err) {
+      alert('Failed to update status: ' + err.message);
+    }
+  };
+
+  const handleDeleteCourse = async (courseId) => {
     if (window.confirm('Are you sure you want to delete this course? This action cannot be undone.')) {
-      setCourses(prev => prev.filter(c => c.id !== courseId));
-      setSelectedCourse(null);
+      try {
+        await api.delete(`/courses/${courseId}`);
+        setCourses(prev => prev.filter(c => c.id !== courseId));
+        if (selectedCourse?.id === courseId) {
+          setSelectedCourse(null);
+        }
+      } catch (err) {
+        alert('Failed to delete course: ' + err.message);
+      }
+    }
+  };
+
+  const handleDeleteLesson = (lesson) => {
+    setLessonToDelete(lesson);
+    setShowLessonDeleteModal(true);
+  };
+
+  const confirmDeleteLesson = async () => {
+    if (!lessonToDelete) return;
+    try {
+      setIsDeletingLesson(true);
+      await api.delete(`/lessons/${lessonToDelete.id}`);
+      setLessons(prev => prev.filter(l => l.id !== lessonToDelete.id));
+      setShowLessonDeleteModal(false);
+    } catch (err) {
+      alert('Failed to delete lesson: ' + (err.response?.data?.error || err.message));
+    } finally {
+      setIsDeletingLesson(false);
+      setLessonToDelete(null);
+    }
+  };
+
+  const handleDeleteResource = (resource) => {
+    setResourceToDelete(resource);
+    setShowResourceDeleteModal(true);
+  };
+
+  const confirmDeleteResource = async () => {
+    if (!resourceToDelete) return;
+    try {
+      setIsDeletingResource(true);
+      await api.delete(`/lessons/resources/${resourceToDelete.id}`);
+      fetchLessons(selectedCourse.id);
+      setShowResourceDeleteModal(false);
+    } catch (err) {
+      alert('Failed to delete resource: ' + (err.response?.data?.error || err.message));
+    } finally {
+      setIsDeletingResource(false);
+      setResourceToDelete(null);
+    }
+  };
+
+  const handleThumbnailUpdate = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      setIsUpdatingThumbnail(true);
+
+      const formDataUpload = new FormData();
+      formDataUpload.append('file', file);
+      formDataUpload.append('folder', 'courses/thumbnails');
+
+      const uploadRes = await api.post('/media/upload', formDataUpload, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      const newThumbnailUrl = uploadRes.data.path;
+
+      await api.patch(`/courses/${selectedCourse.id}`, {
+        thumbnail_url: newThumbnailUrl
+      });
+
+      setSelectedCourse(prev => ({ ...prev, thumbnail_url: newThumbnailUrl }));
+      fetchCourses(); // Refresh list background
+
+    } catch (err) {
+      alert('Failed to update thumbnail: ' + err.message);
+    } finally {
+      setIsUpdatingThumbnail(false);
+    }
+  };
+
+  const handleDownloadResource = async (resource) => {
+    try {
+      const response = await api.get(`/media/signed-url?courseId=${selectedCourse.id}&path=${resource.file_url}`);
+      window.open(response.data.signedUrl, '_blank');
+    } catch (err) {
+      alert('Failed to get access link: ' + (err.response?.data?.error || err.message));
     }
   };
 
   const getStatusColor = (status) => {
-    switch (status) {
-      case 'Published': return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
-      case 'Hidden': return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
+    switch (status?.toLowerCase()) {
+      case 'published': return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
+      case 'draft': return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
       default: return 'bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-400';
     }
   };
@@ -138,24 +220,24 @@ export default function CourseBoxModal({ isOpen, onClose, initialCourse }) {
                 {courses.map((course) => (
                   <div key={course.id} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all group flex flex-col h-full">
                     <div className="relative h-40">
-                      <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                      <img src={course.thumbnailUrl || course.thumbnail_url || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=80'} alt={course.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                       <div className="absolute top-2 right-2 flex gap-2">
-                        <span className={`px-2 py-1 rounded text-xs font-bold ${getStatusColor(course.status)}`}>{course.status}</span>
+                        <span className={`px-2 py-1 rounded text-[10px] font-black uppercase tracking-widest ${getStatusColor(course.status)}`}>{course.status}</span>
                       </div>
                     </div>
-                    <div className="p-5 flex-1 flex flex-col">
+                    <div className="p-5 flex-1 flex flex-col text-left">
                       <h3 className="font-bold text-slate-900 dark:text-white mb-2 line-clamp-1">{course.title}</h3>
                       <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 mb-4 flex-1">{course.description}</p>
                       <div className="flex items-center justify-between text-sm mb-4">
                         <span className="font-bold text-primary">${course.price}</span>
-                        <span className="text-slate-400 flex items-center gap-1"><span className="material-symbols-outlined text-sm">groups</span> {course.students}</span>
+                        <span className="text-slate-400 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">{course.level}</span>
                       </div>
                       <div className="flex gap-2">
                         <button onClick={() => setSelectedCourse(course)} className="flex-1 py-2 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-lg transition-all text-sm font-bold flex items-center justify-center gap-1">
                           <span className="material-symbols-outlined text-sm">settings</span> Manage
                         </button>
-                        <button onClick={() => handleStatusToggle(course.id)} className="px-3 py-2 bg-slate-100 dark:bg-slate-700 text-slate-600 rounded-lg">
-                          <span className="material-symbols-outlined text-sm">{course.status === 'Published' ? 'visibility_off' : 'visibility'}</span>
+                        <button onClick={() => handleStatusToggle(course.id, course.status)} className="px-3 py-2 bg-slate-100 dark:bg-slate-700 text-slate-600 rounded-lg">
+                          <span className="material-symbols-outlined text-sm">{course.status === 'published' ? 'visibility_off' : 'visibility'}</span>
                         </button>
                         <button onClick={() => handleDeleteCourse(course.id)} className="px-3 py-2 bg-red-50 dark:bg-red-900/20 text-red-600 rounded-lg">
                           <span className="material-symbols-outlined text-sm">delete</span>
@@ -172,12 +254,36 @@ export default function CourseBoxModal({ isOpen, onClose, initialCourse }) {
               <div className="flex-1 p-6">
                 {/* Banner */}
                 <div className="flex justify-between items-start mb-8 bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-200 dark:border-slate-700">
-                  <div className="flex gap-6">
-                    <img src={selectedCourse.thumbnail} alt="" className="w-32 h-32 rounded-full mx-auto mb-4 border-4 border-slate-50 dark:border-slate-800 shadow-sm" />
+                  <div className="flex gap-6 text-left">
+                    <div className="relative group/thumb">
+                      <img
+                        src={selectedCourse.thumbnailUrl || selectedCourse.thumbnail_url || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=200&q=80'}
+                        alt=""
+                        className={`w-32 h-32 rounded-2xl object-cover border-4 border-white dark:border-slate-800 shadow-sm ${isUpdatingThumbnail ? 'opacity-50' : ''}`}
+                      />
+                      <label
+                        className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 text-white rounded-2xl opacity-0 group-hover/thumb:opacity-100 cursor-pointer transition-all border-4 border-transparent"
+                      >
+                        <span className="material-symbols-outlined text-3xl mb-1">{isUpdatingThumbnail ? 'sync' : 'camera_enhance'}</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest">{isUpdatingThumbnail ? 'Updating...' : 'Change Cover'}</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={handleThumbnailUpdate}
+                          disabled={isUpdatingThumbnail}
+                        />
+                      </label>
+                      {isUpdatingThumbnail && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+                        </div>
+                      )}
+                    </div>
                     <div>
                       <div className="flex items-center gap-3 mb-2">
-                        <span className={`px-2 py-1 rounded text-xs font-bold ${getStatusColor(selectedCourse.status)}`}>{selectedCourse.status}</span>
-                        <span className="text-slate-500 text-sm">{selectedCourse.category}</span>
+                        <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest ${getStatusColor(selectedCourse.status)}`}>{selectedCourse.status}</span>
+                        <span className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">{selectedCourse.category}</span>
                       </div>
                       <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{selectedCourse.title}</h2>
                       <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 max-w-xl">{selectedCourse.description}</p>
@@ -187,15 +293,12 @@ export default function CourseBoxModal({ isOpen, onClose, initialCourse }) {
                     <button onClick={() => setShowVideoUpload(true)} className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2 font-bold shadow-lg shadow-primary/20">
                       <span className="material-symbols-outlined">video_call</span> Add Video
                     </button>
-                    <button onClick={() => setShowResourceUpload(true)} className="px-4 py-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 transition-colors flex items-center gap-2 font-bold">
-                      <span className="material-symbols-outlined">attach_file</span> Add Resources
-                    </button>
                     {!initialCourse && (
-              <button onClick={() => setSelectedCourse(null)} className="px-4 py-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg text-sm font-bold hover:bg-slate-50 transition-colors">
-                Back to List
-              </button>
-            )}
-          </div>
+                      <button onClick={() => setSelectedCourse(null)} className="px-4 py-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg text-sm font-bold hover:bg-slate-50 transition-colors">
+                        Back to List
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -203,65 +306,83 @@ export default function CourseBoxModal({ isOpen, onClose, initialCourse }) {
                   <div className="lg:col-span-2 space-y-6">
                     <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
                       <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
-                        <span className="material-symbols-outlined text-primary">video_library</span> Series of Videos
+                        <span className="material-symbols-outlined text-primary">video_library</span> Course Content ({lessons.length} Lessons)
                       </h3>
-                      
+
 
                       <div className="space-y-4">
-                        {selectedCourse.videos?.length > 0 ? (
-                          selectedCourse.videos.map((video, idx) => (
-                            <div key={video.id} className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
+                        {lessons.length > 0 ? (
+                          lessons.map((lesson, idx) => (
+                            <div key={lesson.id} className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden text-left">
                               <div className="bg-slate-50 dark:bg-slate-800/50 p-4 flex items-center justify-between border-b border-slate-200 dark:border-slate-700">
                                 <div className="flex items-center gap-3">
                                   <span className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">{idx + 1}</span>
-                                  <h4 className="font-semibold text-slate-900 dark:text-white">{video.title}</h4>
+                                  <h4 className="font-semibold text-slate-900 dark:text-white">{lesson.title}</h4>
                                 </div>
                                 <div className="flex gap-2">
-                                  <button className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-slate-500 transition-colors"><span className="material-symbols-outlined text-sm">edit</span></button>
-                                  <button className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 rounded-lg transition-colors"><span className="material-symbols-outlined text-sm">delete</span></button>
+                                  <button
+                                    onClick={() => {
+                                      setSelectedLessonForResource(lesson.id);
+                                      setShowResourceUpload(true);
+                                    }}
+                                    className="p-1.5 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 text-indigo-600 rounded-lg transition-colors"
+                                    title="Add Resources"
+                                  >
+                                    <span className="material-symbols-outlined text-sm">attach_file</span>
+                                  </button>
+                                  <button onClick={() => handleDeleteLesson(lesson)} className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 rounded-lg transition-colors">
+                                    <span className="material-symbols-outlined text-sm">delete</span>
+                                  </button>
                                 </div>
                               </div>
-                              <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block flex items-center gap-1">
-                                    <span className="material-symbols-outlined text-xs">notes</span> Reference Notes
-                                  </label>
-                                  <div className="text-sm text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/30 p-3 rounded-lg border border-slate-100 dark:border-slate-700/50 italic min-h-[100px]">
-                                    {video.notes || 'No notes added yet.'}
+                              <div className="p-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div>
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2 block flex items-center gap-1">
+                                      <span className="material-symbols-outlined text-xs">notes</span> Lesson Content
+                                    </label>
+                                    <div className="text-sm text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/30 p-3 rounded-lg border border-slate-100 dark:border-slate-700/50 line-clamp-3">
+                                      {lesson.description || lesson.content || 'No description provided.'}
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2 block flex items-center gap-1">
+                                      <span className="material-symbols-outlined text-xs">movie</span> Video Path
+                                    </label>
+                                    <div className="text-xs font-mono text-slate-500 bg-slate-100 dark:bg-slate-900/50 p-2 rounded border border-slate-200 dark:border-slate-800 truncate">
+                                      {lesson.video_url || 'No video uploaded.'}
+                                    </div>
                                   </div>
                                 </div>
-                                <div>
-                                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block flex items-center justify-between">
-                                    <span className="flex items-center gap-1">
-                                      <span className="material-symbols-outlined text-xs">attach_file</span> Attached Files & Resources
-                                    </span>
-                                    <input
-                                      type="file"
-                                      className="hidden"
-                                      id={`file-upload-${video.id}`}
-                                      multiple
-                                      accept=".pdf,image/*,.zip"
-                                    />
-                                    <label
-                                      htmlFor={`file-upload-${video.id}`}
-                                      className="text-primary hover:text-blue-600 cursor-pointer text-[10px] font-black uppercase flex items-center gap-1"
-                                    >
-                                      <span className="material-symbols-outlined text-[12px]">upload</span>
-                                      Upload PDF/Image
-                                    </label>
+
+                                {/* Resource List Section */}
+                                <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+                                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-3 block flex items-center gap-1">
+                                    <span className="material-symbols-outlined text-xs">attach_file</span> Attached Resources ({lesson.resources?.length || 0})
                                   </label>
                                   <div className="space-y-2">
-                                    {video.files?.map((file, fidx) => (
-                                      <div key={fidx} className="flex items-center justify-between p-2 bg-white dark:bg-slate-800 rounded-lg text-sm border border-slate-100 dark:border-slate-700/50 shadow-sm group">
-                                        <span className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
-                                          <span className="material-symbols-outlined text-sm text-primary">description</span> {file}
-                                        </span>
-                                        <span className="material-symbols-outlined text-sm text-slate-400 cursor-pointer hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">close</span>
-                                      </div>
-                                    ))}
-                                    <button className="w-full py-2 border border-dashed border-slate-300 dark:border-slate-700 rounded-lg text-xs text-slate-500 hover:text-primary hover:border-primary transition-all flex items-center justify-center gap-1 mt-2 font-medium bg-slate-50/50 dark:bg-slate-800/50">
-                                      <span className="material-symbols-outlined text-sm">add</span> Add File/Resource
-                                    </button>
+                                    {lesson.resources && lesson.resources.length > 0 ? (
+                                      lesson.resources.map(res => (
+                                        <div key={res.id} className="flex items-center justify-between p-2 bg-slate-50 dark:bg-slate-800/20 rounded-lg border border-slate-100 dark:border-slate-700/30">
+                                          <div className="flex items-center gap-2 min-w-0">
+                                            <span className="material-symbols-outlined text-slate-400 text-sm">
+                                              {res.file_type?.toLowerCase().includes('image') ? 'image' : 'description'}
+                                            </span>
+                                            <span className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate">{res.title}</span>
+                                          </div>
+                                          <div className="flex gap-1">
+                                            <button onClick={() => handleDownloadResource(res)} className="p-1 hover:bg-white dark:hover:bg-slate-700 rounded text-slate-400 hover:text-primary transition-colors">
+                                              <span className="material-symbols-outlined text-sm">open_in_new</span>
+                                            </button>
+                                            <button onClick={() => handleDeleteResource(res)} className="p-1 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 rounded transition-colors">
+                                              <span className="material-symbols-outlined text-sm">delete</span>
+                                            </button>
+                                          </div>
+                                        </div>
+                                      ))
+                                    ) : (
+                                      <p className="text-[10px] text-slate-400 italic">No resources uploaded for this lesson.</p>
+                                    )}
                                   </div>
                                 </div>
                               </div>
@@ -270,9 +391,9 @@ export default function CourseBoxModal({ isOpen, onClose, initialCourse }) {
                         ) : (
                           <div className="text-center py-12 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl bg-slate-50/30 dark:bg-slate-800/30">
                             <span className="material-symbols-outlined text-4xl text-slate-300 mb-2">movie</span>
-                            <p className="text-slate-500 dark:text-slate-400">No videos in this course yet.</p>
+                            <p className="text-slate-500 dark:text-slate-400">No content in this course yet.</p>
                             <button onClick={() => setShowVideoUpload(true)} className="mt-4 px-4 py-2 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-lg transition-all text-sm font-bold">
-                              Upload First Video
+                              Add First Lesson
                             </button>
                           </div>
                         )}
@@ -280,27 +401,29 @@ export default function CourseBoxModal({ isOpen, onClose, initialCourse }) {
                     </div>
                   </div>
 
-                  {/* Right: Instructor & Quick Stats */}
-                  <div className="space-y-6">
+                  {/* Right: Quick Stats */}
+                  <div className="space-y-6 text-left">
                     <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm text-center">
-                      <img src={selectedCourse.tutor.avatar} alt="" className="w-20 h-20 rounded-full mx-auto mb-4 border-4 border-slate-50 dark:border-slate-800 shadow-sm" />
-                      <h4 className="font-bold text-slate-900 dark:text-white">{selectedCourse.tutor.name}</h4>
-                      <p className="text-sm text-primary font-medium mb-4">{selectedCourse.tutor.role}</p>
-                      <button className="w-full py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-bold hover:bg-slate-200 transition-colors">Edit Instructor Profile</button>
+                      <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <span className="material-symbols-outlined text-primary text-3xl">info</span>
+                      </div>
+                      <h4 className="font-bold text-slate-900 dark:text-white uppercase tracking-tight">Course Info</h4>
+                      <p className="text-xs text-slate-500 mb-4 tracking-wide font-bold uppercase">{selectedCourse.level} • {selectedCourse.category}</p>
+                      <div className="text-2xl font-black text-indigo-600">${selectedCourse.price}</div>
                     </div>
 
                     <div className="bg-gradient-to-br from-slate-900 to-slate-800 dark:from-slate-800 dark:to-slate-950 p-6 rounded-2xl text-white shadow-lg border border-white/10">
-                      <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-6 flex items-center gap-2">
+                      <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
                         <span className="material-symbols-outlined text-xs">analytics</span> Performance
                       </h3>
                       <div className="space-y-4">
                         <div className="flex justify-between items-center pb-4 border-b border-white/5">
-                          <span className="text-slate-400 text-sm">Enrolled Students</span>
-                          <span className="text-xl font-bold">{selectedCourse.students}</span>
+                          <span className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Date Created</span>
+                          <span className="text-sm font-bold">{selectedCourse.createdAt ? new Date(selectedCourse.createdAt).toLocaleDateString() : 'N/A'}</span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-slate-400 text-sm">Total Revenue</span>
-                          <span className="text-xl font-bold text-green-400">${(selectedCourse.students * selectedCourse.price).toLocaleString()}</span>
+                          <span className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Last Updated</span>
+                          <span className="text-sm font-bold">{selectedCourse.updatedAt ? new Date(selectedCourse.updatedAt).toLocaleDateString() : 'N/A'}</span>
                         </div>
                       </div>
                     </div>
@@ -312,8 +435,41 @@ export default function CourseBoxModal({ isOpen, onClose, initialCourse }) {
         </div>
       </div>
 
-      <VideoUploadModal isOpen={showVideoUpload} onClose={() => setShowVideoUpload(false)} />
-      <ResourceUploadModal isOpen={showResourceUpload} onClose={() => setShowResourceUpload(false)} />
+      <VideoUploadModal
+        isOpen={showVideoUpload}
+        onClose={() => setShowVideoUpload(false)}
+        courseId={selectedCourse?.id}
+        onLessonAdded={() => fetchLessons(selectedCourse.id)}
+      />
+      <ResourceUploadModal
+        isOpen={showResourceUpload}
+        onClose={() => {
+          setShowResourceUpload(false);
+          setSelectedLessonForResource(null);
+        }}
+        lessonId={selectedLessonForResource}
+        onResourceAdded={() => fetchLessons(selectedCourse.id)}
+      />
+
+      <ConfirmModal
+        isOpen={showLessonDeleteModal}
+        onClose={() => setShowLessonDeleteModal(false)}
+        onConfirm={confirmDeleteLesson}
+        loading={isDeletingLesson}
+        title="Delete Lesson"
+        message={`Are you sure you want to delete "${lessonToDelete?.title}"? This will permanently remove its video and all attached resources.`}
+        confirmText="Permanently Delete"
+      />
+
+      <ConfirmModal
+        isOpen={showResourceDeleteModal}
+        onClose={() => setShowResourceDeleteModal(false)}
+        onConfirm={confirmDeleteResource}
+        loading={isDeletingResource}
+        title="Delete Resource"
+        message={`Are you sure you want to delete "${resourceToDelete?.title}"?`}
+        confirmText="Delete Resource"
+      />
     </div>
   );
 }

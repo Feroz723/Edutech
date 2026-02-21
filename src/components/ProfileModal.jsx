@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
+import api from '../lib/api';
+import { compressImage } from '../utils/imageUtils';
 
 export default function ProfileModal({ isOpen, onClose }) {
   const { user } = useAuth();
@@ -45,35 +47,52 @@ export default function ProfileModal({ isOpen, onClose }) {
   const handleImageUpload = (e) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
-    
+
     const reader = new FileReader();
-    reader.onload = () => {
-      setProfileData(prev => ({ ...prev, profileImage: reader.result }));
+    reader.onload = async () => {
+      try {
+        const compressedImage = await compressImage(reader.result);
+        setProfileData(prev => ({ ...prev, profileImage: compressedImage }));
+      } catch (error) {
+        console.error('Compression error:', error);
+        setProfileData(prev => ({ ...prev, profileImage: reader.result }));
+      }
     };
     reader.readAsDataURL(file);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setMessage('');
 
-    // Simulate API call
-    setTimeout(() => {
-      try {
-        localStorage.setItem('adminProfileData', JSON.stringify(profileData));
-        localStorage.setItem('adminProfile', profileData.profileImage);
-        setMessage('Profile updated successfully!');
-        setTimeout(() => {
-          onClose();
-          window.location.reload(); // Refresh to update header
-        }, 1500);
-      } catch (error) {
-        setMessage('Error updating profile. Please try again.');
-      } finally {
-        setIsLoading(false);
+    try {
+      const response = await api.put('/users/profile', {
+        fullName: profileData.name,
+        phone: profileData.phone,
+        bio: profileData.bio,
+        location: profileData.location,
+        avatar: profileData.profileImage
+      });
+
+      // Update local user data in context
+      if (user) {
+        // We'll rely on the context update for real-time reflection
+        // But the modal might need a manual refresh if it doesn't listen to user object correctly
+        // Actually it does as per the useEffect([user])
       }
-    }, 1000);
+
+      setMessage('Profile updated successfully!');
+      setTimeout(() => {
+        onClose();
+        window.location.reload(); // Refresh to ensure all components (including Admin ones) sync
+      }, 1500);
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      setMessage('Error updating profile: ' + (error.response?.data?.error || 'Please try again.'));
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleChange = (e) => {
