@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import api from '../../lib/api';
+import { compressImage } from '../../utils/imageUtils';
 
-export default function EditProfile() {
+export default function EditProfile({ onBack }) {
     const { user, updateUser } = useAuth();
-    
+
     const [formData, setFormData] = useState({
         name: user?.name || '',
         email: user?.email || '',
@@ -12,7 +14,8 @@ export default function EditProfile() {
         location: user?.location || '',
         dateOfBirth: user?.dateOfBirth || '',
         education: user?.education || '',
-        experience: user?.experience || ''
+        experience: user?.experience || '',
+        avatar: user?.avatar || ''
     });
 
     const [errors, setErrors] = useState({});
@@ -25,7 +28,7 @@ export default function EditProfile() {
             ...prev,
             [name]: value
         }));
-        
+
         // Clear error for this field
         if (errors[name]) {
             setErrors(prev => ({
@@ -35,16 +38,27 @@ export default function EditProfile() {
         }
     };
 
-    const handleImageChange = (e) => {
+    const handleImageChange = async (e) => {
         const file = e.target.files[0];
         if (file) {
             const reader = new FileReader();
-            reader.onloadend = () => {
-                setAvatarPreview(reader.result);
-                setFormData(prev => ({
-                    ...prev,
-                    avatar: reader.result
-                }));
+            reader.onloadend = async () => {
+                try {
+                    const compressedImage = await compressImage(reader.result);
+                    setAvatarPreview(compressedImage);
+                    setFormData(prev => ({
+                        ...prev,
+                        avatar: compressedImage
+                    }));
+                } catch (error) {
+                    console.error('Compression error:', error);
+                    // Fallback to original if compression fails
+                    setAvatarPreview(reader.result);
+                    setFormData(prev => ({
+                        ...prev,
+                        avatar: reader.result
+                    }));
+                }
             };
             reader.readAsDataURL(file);
         }
@@ -52,58 +66,72 @@ export default function EditProfile() {
 
     const validateForm = () => {
         const newErrors = {};
-        
+
         if (!formData.name.trim()) {
             newErrors.name = 'Name is required';
         }
-        
+
         if (!formData.email.trim()) {
             newErrors.email = 'Email is required';
         } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
             newErrors.email = 'Email is invalid';
         }
-        
+
         if (formData.phone && !/^\+?[\d\s-()]+$/.test(formData.phone)) {
             newErrors.phone = 'Phone number is invalid';
         }
-        
+
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         if (!validateForm()) {
             return;
         }
-        
+
         setIsSubmitting(true);
-        
+
         try {
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            
-            // Update user data
-            updateUser(formData);
-            
+            // Update profile via backend
+            const response = await api.put('/users/profile', {
+                fullName: formData.name, // Mapping 'name' to 'fullName' as per backend
+                phone: formData.phone,
+                bio: formData.bio,
+                location: formData.location,
+                dateOfBirth: formData.dateOfBirth,
+                education: formData.education,
+                experience: formData.experience,
+                avatar: formData.avatar
+            });
+
+            // Update local user data in context
+            updateUser({
+                ...formData,
+                fullName: formData.name,
+                avatar: formData.avatar
+            });
+
+            alert('Profile updated successfully!');
+
             // Navigate back to dashboard
-            const event = new CustomEvent('navigateToDashboard');
-            window.dispatchEvent(event);
+            if (onBack) onBack();
         } catch (error) {
             console.error('Error updating profile:', error);
+            alert('Error updating profile: ' + (error.response?.data?.error || 'Please try again.'));
         } finally {
             setIsSubmitting(false);
         }
     };
 
     const handleCancel = () => {
-        const event = new CustomEvent('navigateToDashboard');
-        window.dispatchEvent(event);
+        if (onBack) onBack();
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-900 py-8">
+        <div className="py-8">
             <div className="max-w-4xl mx-auto px-6">
                 {/* Header */}
                 <div className="mb-8">

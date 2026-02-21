@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import api from '../lib/api';
 
-export default function ResourceUploadModal({ isOpen, onClose }) {
+export default function ResourceUploadModal({ isOpen, onClose, lessonId, onResourceAdded }) {
   const [resourceData, setResourceData] = useState({
     title: '',
     type: 'Note',
@@ -8,14 +9,17 @@ export default function ResourceUploadModal({ isOpen, onClose }) {
     files: []
   });
 
+  const [isUploading, setIsUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
+
   if (!isOpen) return null;
 
   const handleFileChange = (e) => {
     const files = e.target.files;
     if (files && files.length > 0) {
-      setResourceData(prev => ({ 
-        ...prev, 
-        files: [...prev.files, ...Array.from(files)] 
+      setResourceData(prev => ({
+        ...prev,
+        files: [...prev.files, ...Array.from(files)]
       }));
     }
   };
@@ -27,10 +31,57 @@ export default function ResourceUploadModal({ isOpen, onClose }) {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Uploading resources:', resourceData);
-    onClose();
+    if (resourceData.files.length === 0) {
+      alert('Please select at least one file');
+      return;
+    }
+    if (!lessonId) {
+      alert('Lesson ID is missing');
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+      const total = resourceData.files.length;
+
+      for (let i = 0; i < total; i++) {
+        const file = resourceData.files[i];
+
+        // 1. Upload to Storage
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('bucket', 'course-media');
+        formData.append('path', `lessons/${lessonId}/resources/${Date.now()}_${file.name}`);
+
+        const uploadRes = await api.post('/media/upload', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+
+        const fileUrl = uploadRes.data.path;
+
+        // 2. Create resource in DB
+        await api.post(`/lessons/resources/${lessonId}`, {
+          title: resourceData.title || file.name,
+          file_url: fileUrl,
+          file_type: resourceData.type || 'Note'
+        });
+
+        setProgress(Math.round(((i + 1) / total) * 100));
+      }
+
+      alert('Resources uploaded successfully!');
+      onResourceAdded?.();
+      onClose();
+      setResourceData({ title: '', type: 'Note', description: '', files: [] });
+      setProgress(0);
+    } catch (err) {
+      console.error('Resource upload failed:', err);
+      alert('Upload failed: ' + (err.response?.data?.error || err.message));
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -56,7 +107,7 @@ export default function ResourceUploadModal({ isOpen, onClose }) {
               placeholder="e.g. Chapter 1 Summary & Diagrams"
               className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary outline-none transition-all"
               value={resourceData.title}
-              onChange={(e) => setResourceData({...resourceData, title: e.target.value})}
+              onChange={(e) => setResourceData({ ...resourceData, title: e.target.value })}
               required
             />
           </div>
@@ -68,12 +119,11 @@ export default function ResourceUploadModal({ isOpen, onClose }) {
                 <button
                   key={t}
                   type="button"
-                  onClick={() => setResourceData({...resourceData, type: t})}
-                  className={`py-2 rounded-lg border-2 text-sm font-bold transition-all ${
-                    resourceData.type === t 
-                    ? 'border-primary bg-primary/5 text-primary' 
+                  onClick={() => setResourceData({ ...resourceData, type: t })}
+                  className={`py-2 rounded-lg border-2 text-sm font-bold transition-all ${resourceData.type === t
+                    ? 'border-primary bg-primary/5 text-primary'
                     : 'border-slate-100 dark:border-slate-800 text-slate-500'
-                  }`}
+                    }`}
                 >
                   {t}
                 </button>
@@ -88,7 +138,7 @@ export default function ResourceUploadModal({ isOpen, onClose }) {
               placeholder="Provide context for these resources..."
               className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary outline-none transition-all resize-none"
               value={resourceData.description}
-              onChange={(e) => setResourceData({...resourceData, description: e.target.value})}
+              onChange={(e) => setResourceData({ ...resourceData, description: e.target.value })}
             ></textarea>
           </div>
 
@@ -127,7 +177,7 @@ export default function ResourceUploadModal({ isOpen, onClose }) {
                       <span className="text-[10px] text-slate-400">{(file.size / 1024).toFixed(1)} KB</span>
                     </div>
                   </div>
-                  <button 
+                  <button
                     type="button"
                     onClick={() => removeFile(index)}
                     className="p-1 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 rounded-lg transition-colors"

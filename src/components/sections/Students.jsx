@@ -1,109 +1,179 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import api from '../../lib/api';
+import CreateStudentModal from '../CreateStudentModal';
+import AssignCourseModal from '../AssignCourseModal';
 
 export default function Students() {
-  const studentsList = [
-    {
-      name: 'Marcus Holloway',
-      email: 'marcus@example.com',
-      courses: 5,
-      completion: 98,
-      grade: 'A+',
-      gradeColor: 'text-emerald-600',
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCrI5SCknSSDtHglOCS9YqlTtMNmpvYn59fN1ecz2LPxDQwCvgwuKhXBiNA1vs8dUuAnZ0yX037AKJhMbMhtn8KOnx7b3luN4oszxNZK_n4li6OFhkNckqhH36DdckIO69NOE5ANHkNeQ3bl91De8llKD3CVuNcIuTCE6J3Hqn88BXbEbxqIQ5NLJvFxufitANKZwRTa_44D2rixgwC3O0eFmzQqdJwJQYy9iGNYURcopGj6PpafzRca7ztdCgNHUw-_8eGg2eLEoep',
-    },
-    {
-      name: 'Sofia Rodriguez',
-      email: 'sofia.r@example.com',
-      courses: 3,
-      completion: 92,
-      grade: 'A',
-      gradeColor: 'text-emerald-600',
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuA7PRrSQE5dGEGlvQpdEgelUo1jnt2Y4qLAhM0FlxWm_KE00MVUwhRbvr1_NuOXnWZo4cAOEa6o0sH5_nfftFIuwN3eZYIGXxoVy4x5QzztdTNTMONX5OkWiXHI1gVq2AK0Wjpb1sAgRvDoua-BArHTWvAEgSrqRXevHiNkpv9bOFPCPa1GL2IAvX5EzU1KhzTj63bgvfLQL0CV9ffTp97jvlV9aczmHsGMUxFNSnis_LQhevrEUwcPLkgo7rbAWflc0CogC8n6xf7v',
-    },
-    {
-      name: 'Liam Henderson',
-      email: 'liam.h@example.com',
-      courses: 8,
-      completion: 85,
-      grade: 'A-',
-      gradeColor: 'text-emerald-600',
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCP-96h8U4ur_HxhHw-nKrLEn9zTTSJjNJhJ0bvsveNdESrN-0N-3NdNFEcOJvYkFqTCb4aXkDQz4QO6gesL646h70UF47THwk9pmpsmn4h80V51SkejenQuvIyMtyk7anMcSI3PvowdJtMe1kKKqUqJHbpv2masj2GtNCVU31hwVBG3fFYKgWuu-0UzqNfh_OJVPYrPV4VexUzmFypmTgdh92f0mpmfKoqltRUzqlcaT7Qhdju0K-zPdXgirk7DT3IXmIalWOfizK4',
-    },
-    {
-      name: 'Emma Thompson',
-      email: 'emma.t@example.com',
-      courses: 4,
-      completion: 78,
-      grade: 'B+',
-      gradeColor: 'text-blue-600',
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB8WIh4gT0RytNB1DHffofJFUWRzFi46iwpmbrutgGRb3JS5Qo0XwZ13btVWpcOPpqMWSRGR0BCh3gJdiH098jUnlsw933WsFOtEORSha_arx0TVNKR__QG8t3XWlzElLUxYnQzSaZnvIm7xbIaUkDirMa2JMzK9b3TtCM7XPnr1hTHl4KLRhNefnYTNh5abuSvDx63mLTkxUDlZmenTaYl3211rf3c95qFePImLD_Isn_X2wEff4T6kehhFgB5DcQxuxTYbDA6oO1Z',
-    },
-  ];
+  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+
+  useEffect(() => {
+    fetchStudents();
+  }, []);
+
+  const fetchStudents = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await api.get('/admin/users');
+      setStudents(response.data || []);
+    } catch (err) {
+      setError(err.message || 'Failed to fetch students');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStudentCreated = (newStudent) => {
+    setStudents(prev => [newStudent, ...prev]);
+  };
+
+  const handleDeleteStudent = async (studentId) => {
+    if (window.confirm('Are you sure you want to delete this student? This will also remove their authentication account.')) {
+      try {
+        await api.delete(`/admin/students/${studentId}`);
+        setStudents(prev => prev.filter(s => s.id !== studentId));
+      } catch (err) {
+        alert('Failed to delete student: ' + err.message);
+      }
+    }
+  };
+
+  const filteredStudents = students.filter(student =>
+    (student.name || student.fullName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (student.email || '').toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Student Management</h1>
-          <p className="text-slate-500">Track student progress and performance across all courses.</p>
+    <div className="space-y-8 pb-10">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="text-left">
+          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Student Directory</h1>
+          <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px] mt-1">Manage and monitor learner progression</p>
         </div>
-        <div className="flex gap-2">
-          <button className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 px-4 py-2 rounded-lg flex items-center gap-2 font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-            <span className="material-symbols-outlined">download</span> Export List
-          </button>
-          <button className="bg-primary text-white px-4 py-2 rounded-lg flex items-center gap-2 font-medium hover:bg-blue-700 transition-colors">
-            <span className="material-symbols-outlined">person_add</span> Add Student
+        <div className="flex gap-4">
+          <div className="relative group">
+            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors">search</span>
+            <input
+              type="text"
+              placeholder="Filter by name or email..."
+              className="pl-12 pr-6 py-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 font-bold text-sm min-w-[300px] transition-all"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="bg-indigo-600 text-white px-8 py-3.5 rounded-2xl flex items-center gap-2 font-black text-[10px] uppercase tracking-widest hover:bg-white hover:text-indigo-600 border border-indigo-600 transition-all shadow-xl shadow-indigo-500/20"
+          >
+            <span className="material-symbols-outlined text-[18px]">person_add</span>
+            Enroll New
           </button>
         </div>
       </div>
 
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-slate-200 dark:border-slate-800">
-          <h3 className="text-lg font-bold text-slate-900 dark:text-white">Top Performing Students</h3>
+      <CreateStudentModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onStudentCreated={handleStudentCreated}
+      />
+
+      <AssignCourseModal
+        isOpen={!!selectedStudent}
+        onClose={() => setSelectedStudent(null)}
+        student={selectedStudent}
+      />
+
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-2xl text-xs font-bold">
+          {error}
+        </div>
+      )}
+
+      <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+        <div className="p-8 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+          <h3 className="text-xl font-black text-slate-900 dark:text-white">Registered Learners</h3>
+          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full">
+            {filteredStudents.length} Total
+          </span>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">
-                <th className="px-6 py-4">Student Name</th>
-                <th className="px-6 py-4">Active Courses</th>
-                <th className="px-6 py-4">Completion Rate</th>
-                <th className="px-6 py-4">Avg. Grade</th>
-                <th className="px-6 py-4 text-right">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-              {studentsList.map((student, index) => (
-                <tr key={index} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden">
-                        <img alt="Avatar" className="w-full h-full object-cover" src={student.image} />
-                      </div>
-                      <div>
-                        <p className="font-medium text-slate-900 dark:text-white">{student.name}</p>
-                        <p className="text-xs text-slate-500">{student.email}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{student.courses}</td>
-                  <td className="px-6 py-4">
-                    <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 max-w-[120px]">
-                      <div className="bg-primary h-2 rounded-full" style={{ width: `${student.completion}%` }}></div>
-                    </div>
-                    <span className="text-xs font-semibold text-slate-500 mt-1 block">{student.completion}%</span>
-                  </td>
-                  <td className={`px-6 py-4 font-bold ${student.gradeColor}`}>{student.grade}</td>
-                  <td className="px-6 py-4 text-right">
-                    <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 uppercase">
-                      Active
-                    </span>
-                  </td>
+        <div className="overflow-x-auto min-h-[400px]">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center h-64 space-y-4">
+              <div className="w-12 h-12 border-4 border-indigo-600/20 border-t-indigo-600 rounded-full animate-spin" />
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Synchronizing Directory...</p>
+            </div>
+          ) : filteredStudents.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-64 text-slate-400">
+              <span className="material-symbols-outlined text-4xl mb-2">person_off</span>
+              <p className="font-bold">No students found</p>
+            </div>
+          ) : (
+            <table className="w-full text-left">
+              <thead>
+                <tr className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-[10px] font-black uppercase tracking-widest">
+                  <th className="px-8 py-5">Profile info</th>
+                  <th className="px-8 py-5">User ID</th>
+                  <th className="px-8 py-5">System Role</th>
+                  <th className="px-8 py-5">Joined Date</th>
+                  <th className="px-8 py-5 text-right">Settings</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                {filteredStudents.map((student) => (
+                  <tr key={student.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-all group">
+                    <td className="px-8 py-5">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-900/30 overflow-hidden border border-indigo-100 dark:border-indigo-800 flex items-center justify-center text-indigo-600 font-black text-lg">
+                          {student.name ? student.name.charAt(0) : student.email?.charAt(0)}
+                        </div>
+                        <div>
+                          <p className="font-black text-slate-900 dark:text-white text-sm">{student.name || 'Anonymous User'}</p>
+                          <p className="text-xs text-slate-500 font-medium">{student.email}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-8 py-5 text-slate-500 font-mono text-xs">{student.id.split('-')[0]}...</td>
+                    <td className="px-8 py-5">
+                      <span className={`px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-widest ${student.role === 'admin'
+                        ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/30'
+                        : 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30'
+                        }`}>
+                        {student.role || 'student'}
+                      </span>
+                    </td>
+                    <td className="px-8 py-5 text-slate-500 font-bold text-xs">
+                      {student.createdAt ? new Date(student.createdAt).toLocaleDateString() : 'N/A'}
+                    </td>
+                    <td className="px-8 py-5 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => setSelectedStudent(student)}
+                          className="px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-xl transition-all text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 hover:text-white flex items-center gap-1"
+                          title="Assign Course"
+                        >
+                          <span className="material-symbols-outlined text-sm font-bold">add_task</span>
+                          Assign
+                        </button>
+                        <button
+                          onClick={() => handleDeleteStudent(student.id)}
+                          className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all text-slate-400 hover:text-red-500"
+                          title="Delete Student"
+                        >
+                          <span className="material-symbols-outlined text-lg">delete</span>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
     </div>

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 
-export default function StudentNavbar({ toggleDarkMode, setCurrentView }) {
+export default function StudentNavbar({ toggleDarkMode, onLogout, activeTab, setActiveTab }) {
     const { user, logout } = useAuth();
     const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
     const dropdownRef = useRef(null);
@@ -24,12 +24,12 @@ export default function StudentNavbar({ toggleDarkMode, setCurrentView }) {
 
     const handleEditProfile = () => {
         setIsProfileDropdownOpen(false);
-        setCurrentView('editProfile');
+        setActiveTab('profile');
     };
 
     const handleSettings = () => {
         setIsProfileDropdownOpen(false);
-        setCurrentView('settings');
+        setActiveTab('settings');
     };
 
     const handleHelpSupport = () => {
@@ -41,7 +41,7 @@ export default function StudentNavbar({ toggleDarkMode, setCurrentView }) {
 
     const handleLogout = () => {
         setIsProfileDropdownOpen(false);
-        logout();
+        onLogout();
     };
 
     return (
@@ -68,7 +68,7 @@ export default function StudentNavbar({ toggleDarkMode, setCurrentView }) {
 
                     {/* User Profile */}
                     <div className="relative" ref={dropdownRef}>
-                        <div 
+                        <div
                             className="flex items-center gap-3 pl-2 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg pr-2 py-1 transition-colors"
                             onClick={handleProfileClick}
                         >
