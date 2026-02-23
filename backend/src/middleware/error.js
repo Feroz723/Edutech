@@ -4,6 +4,9 @@
 export const errorHandler = (err, req, res, next) => {
     const isProduction = process.env.NODE_ENV === 'production';
     let statusCode = err.statusCode || 500;
+    if (res.statusCode !== 200 && statusCode === 500) {
+        statusCode = res.statusCode; // Use status set by notFound or other middleware
+    }
     let message = err.message || 'Internal Server Error';
 
     // 1. Handle Zod Validation Errors
@@ -33,7 +36,7 @@ export const errorHandler = (err, req, res, next) => {
  */
 export const notFound = (req, res, next) => {
     const error = new Error(`Resource not found - ${req.originalUrl}`);
-    res.status(404);
+    error.statusCode = 404;
     next(error);
 };
 
