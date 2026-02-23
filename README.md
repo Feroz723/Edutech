@@ -5,19 +5,16 @@ A modern admin dashboard built with React and Tailwind CSS for the Edutech educa
 ## Project Structure
 
 ```
-src/
-├── components/
-│   ├── Header.jsx           # Top navigation header
-│   ├── Sidebar.jsx          # Left navigation sidebar
-│   └── sections/
-│       ├── Overview.jsx     # Dashboard overview with stats
-│       ├── Courses.jsx      # Course management
-│       ├── Students.jsx     # Student management
-│       └── Analytics.jsx    # Analytics and performance metrics
-├── App.jsx                  # Main app component
-├── App.css                  # App styles
-├── index.css                # Global styles
-└── main.jsx                 # Entry point
+backend/              # Node.js/Express server
+├── src/
+│   ├── controllers/  # API logic
+│   ├── services/     # Business logic
+│   └── index.js      # Server entry point
+frontend/             # React/Vite application
+├── src/              # React components and logic
+├── index.html
+├── vite.config.js
+└── package.json
 ```
 
 ## Features
