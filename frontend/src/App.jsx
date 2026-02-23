@@ -14,6 +14,7 @@ import './App.css';
 function AdminDashboard() {
   const [darkMode, setDarkMode] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
@@ -43,11 +44,24 @@ function AdminDashboard() {
 
   return (
     <div className={`flex min-h-screen ${darkMode ? 'dark' : ''}`}>
-      <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 transition-colors duration-200 flex w-full">
-        <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} toggleDarkMode={toggleDarkMode} />
-        <main className="flex-1 flex flex-col overflow-hidden">
-          <Header toggleDarkMode={toggleDarkMode} darkMode={darkMode} />
-          <div className="flex-1 overflow-y-auto p-8">
+      <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 transition-colors duration-200 flex w-full relative">
+        <Sidebar
+          activeTab={activeTab}
+          setActiveTab={(tab) => {
+            setActiveTab(tab);
+            setIsSidebarOpen(false); // Close on mobile after selection
+          }}
+          toggleDarkMode={toggleDarkMode}
+          isOpen={isSidebarOpen}
+          setIsOpen={setIsSidebarOpen}
+        />
+        <main className="flex-1 flex flex-col min-w-0 overflow-hidden h-screen">
+          <Header
+            toggleDarkMode={toggleDarkMode}
+            darkMode={darkMode}
+            toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+          />
+          <div className="flex-1 overflow-y-auto p-4 md:p-8">
             <div className="max-w-7xl mx-auto">
               {renderContent()}
             </div>

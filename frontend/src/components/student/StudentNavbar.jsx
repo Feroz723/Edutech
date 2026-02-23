@@ -1,12 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 
-export default function StudentNavbar({ toggleDarkMode, onLogout, activeTab, setActiveTab }) {
+export default function StudentNavbar({ toggleDarkMode, onLogout, activeTab, setActiveTab, toggleSidebar }) {
     const { user, logout } = useAuth();
     const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
     const dropdownRef = useRef(null);
 
-    // Close dropdown when clicking outside
+    // ... (useEffect for clicking outside remains same)
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -45,10 +45,19 @@ export default function StudentNavbar({ toggleDarkMode, onLogout, activeTab, set
     };
 
     return (
-        <nav className="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
-            <div className="max-w-[1440px] mx-auto px-6 h-16 flex items-center justify-end">
+        <nav className="sticky top-0 z-[40] bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+            <div className="max-w-[1440px] mx-auto px-4 lg:px-6 h-16 flex items-center justify-between">
+                <button
+                    onClick={toggleSidebar}
+                    className="lg:hidden p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+                >
+                    <span className="material-symbols-outlined font-black">menu</span>
+                </button>
+
+                <div className="flex-1"></div>
+
                 {/* Right: Actions */}
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 lg:gap-4">
                     {/* Dark Mode Toggle */}
                     <button
                         className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"

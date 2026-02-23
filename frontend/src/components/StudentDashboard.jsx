@@ -18,6 +18,7 @@ import api from '../lib/api';
 export default function StudentDashboard() {
     const { logout } = useAuth();
     const [activeTab, setActiveTab] = useState('my-learning');
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isChatOpen, setIsChatOpen] = useState(false);
     const [viewingCourse, setViewingCourse] = useState(null);
     const [showAnalytics, setShowAnalytics] = useState(false);
@@ -57,6 +58,7 @@ export default function StudentDashboard() {
     };
 
     const renderMainContent = () => {
+        // ... (rest of renderMainContent remains same)
         if (showAnalytics) {
             return <StudentAnalytics onBack={handleBackToDashboard} />;
         }
@@ -90,12 +92,17 @@ export default function StudentDashboard() {
     };
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 flex font-sans selection:bg-indigo-100 selection:text-indigo-600">
+        <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 flex font-sans selection:bg-indigo-100 selection:text-indigo-600 relative">
             {/* Sidebar Navigation */}
             <StudentSidebar
                 activeTab={activeTab}
-                setActiveTab={setActiveTab}
+                setActiveTab={(tab) => {
+                    setActiveTab(tab);
+                    setIsSidebarOpen(false); // Close on mobile after selection
+                }}
                 onLogout={logout}
+                isOpen={isSidebarOpen}
+                setIsOpen={setIsSidebarOpen}
                 stats={{
                     total: stats.enrollments || 0,
                     completed: stats.completed || 0,
@@ -104,7 +111,7 @@ export default function StudentDashboard() {
                 }}
             />
 
-            <div className="flex-1 flex flex-col ml-64 min-h-screen relative">
+            <div className="flex-1 flex flex-col lg:ml-64 min-h-screen relative overflow-hidden">
                 <StudentNavbar
                     onLogout={logout}
                     activeTab={activeTab}
@@ -114,6 +121,7 @@ export default function StudentDashboard() {
                         setShowAnalytics(false);
                     }}
                     toggleDarkMode={toggleDarkMode}
+                    toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
                 />
 
                 <main className="flex-1 overflow-y-auto pt-6 px-10 pb-20">

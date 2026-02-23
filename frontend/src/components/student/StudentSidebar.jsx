@@ -7,63 +7,82 @@ const navItems = [
     { id: 'resources', label: 'Resources', icon: 'folder_open' },
 ];
 
-export default function StudentSidebar({ activeTab, setActiveTab, onLogout, stats }) {
+export default function StudentSidebar({ activeTab, setActiveTab, onLogout, stats, isOpen, setIsOpen }) {
     return (
-        <aside className="fixed left-0 top-0 h-screen w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col z-40">
-            {/* Logo */}
-            <div className="p-8 pb-10 flex items-center gap-2">
-                <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-                    <span className="material-symbols-outlined text-white text-xl">school</span>
-                </div>
-                <span className="text-xl font-black tracking-tight text-slate-900 dark:text-white">EduFlow</span>
-            </div>
+        <>
+            {/* Mobile Overlay */}
+            {isOpen && (
+                <div
+                    className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300"
+                    onClick={() => setIsOpen(false)}
+                />
+            )}
 
-            {/* Navigation */}
-            <nav className="flex-1 px-4 space-y-2">
-                {navItems.map((item) => (
+            <aside className={`fixed top-0 left-0 h-screen w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col z-50 transition-transform duration-300 transform lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'
+                }`}>
+                {/* Logo */}
+                <div className="p-8 pb-10 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
+                            <span className="material-symbols-outlined text-white text-xl">school</span>
+                        </div>
+                        <span className="text-xl font-black tracking-tight text-slate-900 dark:text-white">EduFlow</span>
+                    </div>
                     <button
-                        key={item.id}
-                        onClick={() => setActiveTab(item.id)}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === item.id
-                            ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20'
-                            : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
-                            }`}
+                        onClick={() => setIsOpen(false)}
+                        className="lg:hidden p-1 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
                     >
-                        <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
-                        {item.label}
+                        <span className="material-symbols-outlined">close</span>
                     </button>
-                ))}
-            </nav>
-
-            {/* Stats Summary */}
-            <div className="px-8 py-10 border-t border-slate-100 dark:border-slate-800">
-                <div className="space-y-4">
-                    <div className="flex items-center justify-between text-xs">
-                        <span className="text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">Courses</span>
-                        <span className="text-slate-900 dark:text-white font-black">{stats.total || 0}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs">
-                        <span className="text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">Completed</span>
-                        <span className="text-slate-900 dark:text-white font-black">{stats.completed || 0}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs">
-                        <span className="text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">In Progress</span>
-                        <span className="text-slate-900 dark:text-white font-black">{stats.inProgress || 0}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs">
-                        <span className="text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">Certificates</span>
-                        <span className="text-slate-900 dark:text-white font-black">{stats.certificates || 0}</span>
-                    </div>
                 </div>
 
-                <button
-                    onClick={onLogout}
-                    className="mt-10 w-full flex items-center gap-3 px-4 py-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl text-sm font-black transition-all"
-                >
-                    <span className="material-symbols-outlined text-xl">logout</span>
-                    Logout
-                </button>
-            </div>
-        </aside>
+                {/* Navigation */}
+                <nav className="flex-1 px-4 space-y-2">
+                    {navItems.map((item) => (
+                        <button
+                            key={item.id}
+                            onClick={() => setActiveTab(item.id)}
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === item.id
+                                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20'
+                                : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
+                                }`}
+                        >
+                            <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
+                            {item.label}
+                        </button>
+                    ))}
+                </nav>
+
+                {/* Stats Summary */}
+                <div className="px-8 py-10 border-t border-slate-100 dark:border-slate-800">
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between text-xs">
+                            <span className="text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">Courses</span>
+                            <span className="text-slate-900 dark:text-white font-black">{stats.total || 0}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                            <span className="text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">Completed</span>
+                            <span className="text-slate-900 dark:text-white font-black">{stats.completed || 0}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                            <span className="text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">In Progress</span>
+                            <span className="text-slate-900 dark:text-white font-black">{stats.inProgress || 0}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                            <span className="text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">Certificates</span>
+                            <span className="text-slate-900 dark:text-white font-black">{stats.certificates || 0}</span>
+                        </div>
+                    </div>
+
+                    <button
+                        onClick={onLogout}
+                        className="mt-10 w-full flex items-center gap-3 px-4 py-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl text-sm font-black transition-all"
+                    >
+                        <span className="material-symbols-outlined text-xl">logout</span>
+                        Logout
+                    </button>
+                </div>
+            </aside>
+        </>
     );
 }
