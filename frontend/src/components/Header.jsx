@@ -32,15 +32,24 @@ export default function Header({ toggleDarkMode, darkMode }) {
 
   return (
     <>
-      <header className="h-16 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-between px-4 z-20">
-        {/* Search Bar */}
-        <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-full px-4 py-1.5 w-96">
-          <span className="material-symbols-outlined text-slate-400 text-lg mr-2">search</span>
-          <input
-            type="text"
-            placeholder="Search for courses, students..."
-            className="bg-transparent border-none focus:ring-0 text-sm w-full text-slate-700 dark:text-slate-300 placeholder-slate-400 outline-none"
-          />
+      <header className="h-16 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-between px-4 z-20 transition-all duration-200">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={toggleSidebar}
+            className="lg:hidden p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+          >
+            <span className="material-symbols-outlined">menu</span>
+          </button>
+
+          {/* Search Bar - hidden on mobile, compact on desktop */}
+          <div className="hidden md:flex items-center bg-slate-100 dark:bg-slate-800 rounded-full px-4 py-1.5 w-64 lg:w-96 transition-all duration-200">
+            <span className="material-symbols-outlined text-slate-400 text-lg mr-2">search</span>
+            <input
+              type="text"
+              placeholder="Search..."
+              className="bg-transparent border-none focus:ring-0 text-sm w-full text-slate-700 dark:text-slate-300 placeholder-slate-400 outline-none"
+            />
+          </div>
         </div>
 
         {/* Right Section */}
