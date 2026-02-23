@@ -58,7 +58,6 @@ export default function StudentDashboard() {
     };
 
     const renderMainContent = () => {
-        // ... (rest of renderMainContent remains same)
         if (showAnalytics) {
             return <StudentAnalytics onBack={handleBackToDashboard} />;
         }
