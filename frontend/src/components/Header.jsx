@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import ProfileModal from './ProfileModal';
 import { useAuth } from '../context/AuthContext';
 
-export default function Header({ toggleDarkMode, darkMode }) {
+export default function Header({ toggleDarkMode, darkMode, toggleSidebar }) {
   const { user } = useAuth();
   const fileRef = useRef(null);
   const [profileSrc, setProfileSrc] = useState(null);
