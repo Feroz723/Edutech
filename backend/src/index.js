@@ -12,6 +12,7 @@ import chatRoutes from './routes/chatRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import lessonRoutes from './routes/lessonRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+import { isFirebaseInitialized } from './config/firebaseAdmin.js';
 
 dotenv.config();
 
@@ -39,11 +40,11 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
-// 4. Health Check
 app.get('/health', async (req, res) => {
     res.json({
         status: 'healthy',
-        environment: process.env.NODE_ENV
+        environment: process.env.NODE_ENV,
+        firebase: isFirebaseInitialized ? 'connected' : 'disconnected'
     });
 });
 
